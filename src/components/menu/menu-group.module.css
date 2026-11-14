@@ -1,0 +1,38 @@
+.group {
+  position: relative;
+}
+
+.start {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.group + .group {
+  margin-top: 3px;
+}
+
+.heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 7px 2px;
+  background: transparent;
+  color: var(--lumina-alias-label-tertiary);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+.heading[data-stuck] {
+  background: var(--lumina-alias-menu-group-header-fill);
+}
+
+/* 平台判定沿用上游：宿主如需 macOS 分支，可在 html 上设置 data-platform="darwin"。 */
+:global(html:not([data-platform='darwin'])) .heading {
+  border-radius: var(--lumina-radius-md);
+}

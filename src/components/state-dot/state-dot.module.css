@@ -1,0 +1,122 @@
+/* 实心状态保留 10px 的布局槽位，只画一个 6px 的 currentColor 核心。 */
+.dot {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  corner-shape: round;
+  background: currentColor;
+}
+
+.dot[data-state='done'] {
+  color: var(--lumina-alias-state-success-primary);
+}
+
+.dot[data-state='warning'] {
+  color: var(--lumina-alias-state-warn-primary);
+}
+
+.dot[data-state='error'] {
+  color: var(--lumina-alias-state-error-primary);
+}
+
+/* 空闲表示没有活动，使用主题里的中性状态色。 */
+.dot[data-state='idle'] {
+  color: var(--lumina-alias-state-idle-primary);
+}
+
+/* Ongoing 是唯一的非圆点状态：一圈安静的全环衬在居中的呼吸弧后面，完整图形持续
+ * 旋转。两个动画共享同一个 1.5s 周期，固定起始时间后即可对齐。 */
+.spinner {
+  flex: none;
+  color: var(--lumina-alias-label-tertiary);
+}
+
+.spinnerMotion {
+  transform-origin: center;
+  animation: dsh-state-dot-spin 1.5s linear infinite;
+}
+
+.spinnerTrack,
+.spinnerArc {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.spinnerTrack {
+  opacity: 0.25;
+}
+
+.spinnerArc {
+  stroke-dasharray: 12 150;
+  animation: dsh-state-dot-dash 1.5s ease-in-out infinite;
+}
+
+@keyframes dsh-state-dot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dsh-state-dot-dash {
+  0% {
+    stroke-dasharray: 12 150;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 24 150;
+    stroke-dashoffset: -6;
+  }
+
+  100% {
+    stroke-dasharray: 12 150;
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinnerMotion,
+  .spinnerArc {
+    animation: none;
+  }
+
+  .spinnerArc {
+    stroke-dasharray: 18 150;
+    stroke-dashoffset: -3;
+  }
+}
+
+.step {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 50%;
+  corner-shape: round;
+  border: 1.5px solid var(--lumina-alias-label-tertiary);
+  color: var(--lumina-alias-label-primary-foreground);
+}
+
+.step[data-state='done'] {
+  border-color: var(--lumina-alias-state-success-primary);
+  background: var(--lumina-alias-state-success-primary);
+}
+
+.step[data-state='error'] {
+  border-color: var(--lumina-alias-state-error-primary);
+  background: var(--lumina-alias-state-error-primary);
+}
+
+.step[data-state='warning'] {
+  border-color: var(--lumina-alias-state-warn-primary);
+}

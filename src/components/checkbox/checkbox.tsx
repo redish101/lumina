@@ -1,34 +1,51 @@
-/** Controlled native checkbox with a caller-owned visible and accessible label. */
+'use client';
 
-import clsx from 'clsx'
-import css from './checkbox.module.css'
+import clsx from 'clsx';
+import css from './checkbox.module.css';
+
+export interface CheckboxProps {
+  /** 当前是否勾选（受控） */
+  checked: boolean;
+  /** 用户请求的新状态，由调用方写回 `checked` */
+  onChange: (next: boolean) => void;
+  /** 可见文案，同时作为无障碍名称 */
+  label: string;
+  /** 禁用状态 */
+  disabled?: boolean;
+  /** 悬停时的提示文案 */
+  title?: string | undefined;
+  /** 追加在外层 `<label>` 上的类名 */
+  className?: string | undefined;
+  /** 保留位：给未来的浮层组件标记初始焦点，当前不影响渲染 */
+  modalAutofocus?: boolean;
+}
 
 /**
- * Render a labeled checkbox with native keyboard and form semantics.
- * @param props.checked - current checked state.
- * @param props.onChange - receives the requested checked state.
- * @param props.label - localized visible and accessible label.
- * @param props.disabled - whether the control refuses changes.
- * @param props.title - optional localized hover text.
- * @param props.className - extra class for the label's placement.
- * @param props.modalAutofocus - designate the input for the owning Modal's initial focus without React autoFocus.
- * @returns the label containing its checkbox.
+ * 带文字标签的受控复选框。
+ *
+ * 直接使用原生 `<input type="checkbox">`，因此键盘操作与表单提交行为与浏览器一致。
  */
-export function Checkbox({ checked, onChange, label, disabled = false, title, className, modalAutofocus = false }: {
-  checked: boolean
-  onChange: (next: boolean) => void
-  label: string
-  disabled?: boolean
-  title?: string | undefined
-  className?: string | undefined
-  modalAutofocus?: boolean
-}) {
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  title,
+  className,
+  modalAutofocus = false,
+}: CheckboxProps) {
   return (
     <label className={clsx(css.checkbox, className)} title={title}>
-      <input type="checkbox" checked={checked} disabled={disabled}
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
         data-modal-autofocus={modalAutofocus || undefined}
-        onChange={(event) => { onChange(event.target.checked) }} />
+        onChange={(event) => {
+          onChange(event.target.checked);
+        }}
+      />
       <span>{label}</span>
     </label>
-  )
+  );
 }

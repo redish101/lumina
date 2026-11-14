@@ -1,0 +1,54 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 280px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0.5px solid var(--lumina-alias-border-l4);
+  border-radius: var(--lumina-radius-sm);
+  background: var(--lumina-alias-bg-layer-1);
+  color: var(--lumina-alias-label-primary);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--lumina-alias-interactive-bg-hover);
+}
+
+.selected {
+  border-color: var(--lumina-alias-state-business-primary);
+}
+
+.hint {
+  margin-top: 12px;
+  color: var(--lumina-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.controls button {
+  padding: 4px 10px;
+  border: 0.5px solid var(--lumina-alias-border-l4);
+  border-radius: var(--lumina-radius-sm);
+  background: var(--lumina-alias-bg-layer-1);
+  color: var(--lumina-alias-label-primary);
+  font-size: 13px;
+  cursor: pointer;
+}

@@ -1,0 +1,98 @@
+.bubble {
+  display: inline-flex;
+  align-items: safe center;
+  gap: 8px;
+  position: fixed;
+  z-index: 100;
+  /* Fixed-position shrink-to-fit measures only the space from `left` to the
+     viewport edge, so anchors near the right edge would wrap early;
+     max-content sizes by the label alone, capped at half the viewport. */
+  width: max-content;
+  box-sizing: border-box;
+  max-width: min(50vw, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 3px 7px;
+  border-radius: var(--lumina-radius-sm);
+  background: var(--lumina-alias-tooltip-bg);
+  color: var(--lumina-alias-tooltip-label);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: pre-line;
+  /* Unbreakable tokens (URLs, paths) must not push past max-width. */
+  overflow-wrap: break-word;
+  pointer-events: none;
+  animation: lumina-tooltip-in 150ms var(--lumina-ease-in-out);
+}
+
+.bubble[data-portal] {
+  z-index: 1100;
+}
+
+/* Electron 外壳会把窗口标题栏标成 data-platform='darwin' 的拖拽区；
+ * 挂在标题栏里的气泡必须自己退出拖拽，否则鼠标悬停会被当成拖动窗口。
+ * 普通浏览器没有这个属性，规则自然不生效。 */
+:global(:where(html[data-platform='darwin'])) .bubble {
+  -webkit-app-region: no-drag;
+}
+
+.bubble[data-pinned] {
+  pointer-events: auto;
+}
+
+.label {
+  min-width: 0;
+}
+
+/* A 16px keycap centered beside a 20px label has 5px of vertical clearance. */
+.bubble[data-has-shortcut] {
+  padding-inline-end: 5px;
+}
+
+.bubble[data-has-shortcut]:not(:has(.label)) {
+  padding: 3px;
+}
+
+.bubble[data-side='right'],
+.bubble[data-side='left'] {
+  transform: translateY(-50%);
+}
+
+.bubble[data-side='bottom'] {
+  transform: translateX(-50%);
+}
+
+.bubble[data-side='top'] {
+  transform: translate(-50%, -100%);
+}
+
+/* End alignment: `left` carries the anchor's right edge, so the bubble sits
+   fully left of it instead of centering. */
+.bubble[data-side='bottom'][data-align='end'] {
+  transform: translateX(-100%);
+}
+
+.bubble[data-side='top'][data-align='end'] {
+  transform: translate(-100%, -100%);
+}
+
+@keyframes lumina-tooltip-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    animation: none;
+  }
+}
+
+/* input-modality.ts 在 <html> 上发布 data-input-modality：最后一次输入来自指针时，
+ * 点击产生的焦点不画焦点环（可编辑控件保留自己的反馈）。上游把这条规则放在应用
+ * 主题层（ui-theme/focus.css）；本库不打包样式入口，所以随组件样式一起带上，
+ * 宿主仍可用同名规则覆盖。 */
+:global(html[data-input-modality='pointer']) body :focus-visible:not(:read-write) {
+  --lumina-focus-ring-color: transparent;
+  outline-color: transparent;
+}

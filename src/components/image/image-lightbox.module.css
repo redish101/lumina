@@ -1,0 +1,62 @@
+/* 覆盖整个视口的层，挡住背景点击（包括 Windows 标题栏所在区域）。 */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+/*
+ * 预览内容区域。
+ * 上游用 --dsh-frame-chrome-top 预留 Windows 标题栏的高度，本库没有应用外壳提供该变量，
+ * 所以直接铺满视口。
+ */
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* 压在预览与控件下方的共享遮罩。 */
+.mask {
+  position: absolute;
+  inset: 0;
+  background: var(--lumina-alias-bg-mask-1);
+  backdrop-filter: var(--lumina-mask-blur);
+}
+
+.image {
+  position: relative;
+  max-width: min(100%, 1600px);
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--lumina-radius-lg);
+  background: var(--lumina-specific-input-major);
+  border: 0;
+  box-shadow: var(--lumina-elevation-prominent);
+}
+
+.close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0.5px solid var(--lumina-alias-border-l2-darkmode-thin);
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--lumina-specific-input-major);
+  color: var(--lumina-alias-label-primary);
+  cursor: pointer;
+}
+
+.close:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid
+    var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
+  outline-offset: 3px;
+}

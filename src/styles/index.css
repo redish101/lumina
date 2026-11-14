@@ -1,3 +1,4 @@
-/* 样式入口：Storybook 与使用方都从这里引入（构建产物为 dist/style.css）。 */
+/* 样式入口：Storybook 与使用方都从这里引入。 */
 @import './tokens.css';
+@import './primitives.css';
 @import './global.css';

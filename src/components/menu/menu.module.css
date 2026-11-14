@@ -1,0 +1,464 @@
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+/* 各功能菜单共用的紧凑半透明下拉卡片。 */
+.list,
+.submenu {
+  /* 下面的 min-width 是设计稿的卡片外宽——已经包含 padding。 */
+  box-sizing: border-box;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 0;
+  --lumina-elevation-stroke-color: var(--lumina-alias-border-l1);
+  box-shadow: var(--lumina-elevation-prominent);
+  /* 抬升表面：滚动条滑块改用 l2 elevation 令牌。声明放在卡片上而不是
+     `.scrollable .viewport` 上，因为 elevation 是这个表面的属性，而自定义属性
+     会继承到真正滚动的后代（重绑契约见上游 ui-theme 的 styles/scrollbar.css）。 */
+  --dsh-scrollbar-thumb: var(--lumina-alias-scrollbar-bg-l2);
+  --dsh-scrollbar-thumb-hover: var(--lumina-alias-scrollbar-hover-l2);
+}
+
+/* 主卡片随内容增长，介于紧凑与可读之间。 */
+.list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: min(144px, calc(100vw - 24px));
+  max-width: min(360px, calc(100vw - 24px));
+}
+
+/* 旧插槽可能渲染不出任何行；避免空右键菜单占位。 */
+.list[data-context-menu]:not(:has([role='menuitem'])) {
+  display: none;
+}
+
+/* 浏览器缩放移动页面时，每个候选位置都保留布局窗口的留白。 */
+.portal {
+  /* 上游由应用外壳的 --dsh-frame-overlay-top 抬高顶部留白（`max(12px, …)`）；
+     本库没有那层外壳，固定 12px。 */
+  --dsh-menu-window-top: 12px;
+  position: fixed;
+  position-area: none;
+  top: max(var(--dsh-menu-window-top), calc(anchor(bottom) + 4px));
+  bottom: 12px;
+  left: max(12px, anchor(left));
+  right: 12px;
+  justify-self: start;
+  align-self: start;
+  margin: 0;
+  position-try-fallbacks:
+    --dsh-menu-wide-below, --dsh-menu-above, --dsh-menu-wide-above, --dsh-menu-window,
+    --dsh-menu-wide-window;
+  width: max-content;
+  height: fit-content;
+  z-index: 1100;
+}
+.portal[data-anchor-side='top'] {
+  top: var(--dsh-menu-window-top);
+  bottom: max(12px, calc(anchor(top) + 4px));
+  align-self: end;
+  position-try-fallbacks:
+    --dsh-menu-wide-above, --dsh-menu-below, --dsh-menu-wide-below, --dsh-menu-window,
+    --dsh-menu-wide-window;
+}
+.portal[data-anchor-side='right'] {
+  top: max(var(--dsh-menu-window-top), anchor(top));
+  bottom: 12px;
+  left: max(12px, calc(anchor(right) + 4px));
+  right: 12px;
+  position-try-fallbacks:
+    --dsh-menu-left, --dsh-menu-wide-below, --dsh-menu-window, --dsh-menu-wide-window;
+}
+.portal[data-anchor-align='end']:not([data-anchor-side='right']) {
+  left: 12px;
+  right: max(12px, anchor(right));
+  justify-self: end;
+  --dsh-menu-wide-align: start;
+}
+.portal[data-match-anchor-width] {
+  min-width: min(anchor-size(width), calc(100vw - 24px));
+}
+.portal[data-context-menu] {
+  --dsh-menu-window-top: 12px;
+}
+
+@position-try --dsh-menu-below {
+  top: max(var(--dsh-menu-window-top), calc(anchor(bottom) + 4px));
+  bottom: 12px;
+  align-self: start;
+}
+@position-try --dsh-menu-above {
+  top: var(--dsh-menu-window-top);
+  bottom: max(12px, calc(anchor(top) + 4px));
+  align-self: end;
+}
+@position-try --dsh-menu-wide-below {
+  top: max(var(--dsh-menu-window-top), calc(anchor(bottom) + 4px));
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  align-self: start;
+  justify-self: safe var(--dsh-menu-wide-align, end);
+}
+@position-try --dsh-menu-wide-above {
+  top: var(--dsh-menu-window-top);
+  bottom: max(12px, calc(anchor(top) + 4px));
+  left: 12px;
+  right: 12px;
+  align-self: end;
+  justify-self: safe var(--dsh-menu-wide-align, end);
+}
+@position-try --dsh-menu-left {
+  left: 12px;
+  right: max(12px, calc(anchor(left) + 4px));
+  justify-self: end;
+}
+/* 高卡片在需要水平夹紧之前，先保持与触发器的对齐。 */
+@position-try --dsh-menu-window {
+  top: var(--dsh-menu-window-top);
+  bottom: 12px;
+  align-self: safe start;
+}
+
+@position-try --dsh-menu-wide-window {
+  top: var(--dsh-menu-window-top);
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  align-self: safe start;
+  justify-self: safe var(--dsh-menu-wide-align, end);
+}
+
+/* 在锚点上方展开（工作区收起态的空状态胶囊：figma 122:9481）。 */
+.sideTop {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+.alignEnd {
+  left: auto;
+  right: 0;
+}
+
+/* 长列表在布局视口内滚动，与双指缩放无关。
+ * 子卡片走自己的 body portal，因此滚动的父级不会裁剪它们。 */
+.scrollable {
+  /* 上游还会减去外壳顶部条的高度；本库固定为 12px 窗口留白。 */
+  max-height: calc(100vh - 12px - 12px);
+  max-height: calc(100dvh - 12px - 12px);
+}
+
+.viewport {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.scrollable .viewport {
+  overflow-y: auto;
+}
+
+/* 滚动区下方固定的行；l2 细线（l1 在菜单表面上几乎不可见）与 .separator 的间距一致。 */
+.footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 0.5px solid var(--lumina-alias-border-l2);
+}
+
+.list[data-context-menu] .footer:has(> .separator:first-child) {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.itemWrap {
+  position: relative;
+}
+
+/* 菜单单元格：紧凑的文字、图标与选中间距。 */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--lumina-radius-md);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--lumina-alias-label-primary);
+  text-align: left;
+}
+
+@media (hover: hover) {
+  .item:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--lumina-alias-interactive-bg-hover);
+  }
+}
+
+/* 方向键导航移动的是真实焦点，因此键盘所在行拿到的填充与指针悬停一致：
+ * 填充就是这一行的焦点标识，浏览器默认焦点环会造成双重视觉提示。 */
+.item:focus-visible:not(:disabled) {
+  background: var(--lumina-alias-interactive-bg-hover);
+  outline: none;
+}
+
+.denseList .item {
+  min-height: 30px;
+  padding-block: 4px;
+}
+
+.denseList .label {
+  padding-block: 3px;
+}
+
+.list.compactList,
+.submenu.compactList {
+  min-width: min(156px, calc(100vw - 24px));
+  padding: 4px;
+}
+
+.compactList .item {
+  min-height: 24px;
+  gap: 5px;
+  padding: 2px 6px;
+  border-radius: var(--lumina-radius-sm);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.compactList .itemIcon {
+  width: 12px;
+  height: 12px;
+}
+
+.compactList .separator {
+  margin: 2px 6px;
+}
+
+.compactList .label {
+  padding: 3px 6px;
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.item:disabled,
+.item[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.itemIcon {
+  display: inline-flex;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  align-items: center;
+  justify-content: center;
+  color: var(--lumina-alias-menu-icon);
+}
+
+.itemIcon svg,
+.check {
+  width: 14px;
+  height: 14px;
+}
+
+.compactList .itemIcon svg,
+.compactList .check {
+  width: 12px;
+  height: 12px;
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcut {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.shortcut .shortcutKeys {
+  color: var(--lumina-alias-label-caption);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+@media (pointer: coarse) {
+  :global(html:not([data-input-modality='keyboard'])) .shortcut {
+    display: none;
+  }
+}
+
+.check {
+  flex: none;
+  color: var(--lumina-alias-label-primary);
+}
+
+/* 选中的单元格保持普通填充（标记是行尾对勾）；这个类保留为使用方强调的钩子。 */
+.selected {
+  background: transparent;
+}
+
+/* 填充式选中：整行拿悬停填充，不画对勾。 */
+.selectedFill {
+  background: var(--lumina-alias-interactive-bg-hover);
+}
+
+/* 危险行：错误色文字/图标，危险色悬停填充。 */
+.danger {
+  color: var(--lumina-alias-state-error-primary);
+}
+
+.danger .itemIcon {
+  color: var(--lumina-alias-state-error-primary);
+}
+
+@media (hover: hover) {
+  .danger:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--lumina-alias-interactive-bg-hover-danger);
+  }
+}
+
+.danger:focus-visible:not(:disabled) {
+  background: var(--lumina-alias-interactive-bg-hover-danger);
+  outline: none;
+}
+
+/* 标题行：不可交互的小号灰字，内边距与条目对齐。 */
+.label {
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--lumina-alias-label-tertiary);
+}
+
+/* 分隔线端点与行内容对齐。l2 描边在菜单表面上仍然可见。 */
+.separator {
+  height: 0.5px;
+  margin: 3px 8px;
+  background: var(--lumina-alias-border-l2);
+}
+
+/* 数据分隔线紧跟一个「开始新分组」的行时只画一条线；列表首行的分组起点不画线。 */
+.separator + .separator,
+.separator + .itemWrap > .separator:first-child,
+.itemWrap:first-child > .separator:first-child {
+  display: none;
+}
+
+/* 结构化行之后的旧插槽并不是菜单的开头。 */
+.list[data-context-menu]
+  .viewport
+  > .itemWrap
+  ~ [data-slot]
+  .itemWrap:first-child
+  > .separator:first-child {
+  display: block;
+}
+
+/* 打开的子卡片所对齐的父卡片锚点：一个与卡片重合、不滚动的盒子。
+ * WebKit 在锚定卡片落位后不会重新解析它自身的锚点，而滚动列表内部的行
+ * 会被解析成不含滚动偏移的位置；改用后代盒子即可避开这两点。 */
+.submenuAnchor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 在侧边布局与单面板布局之间切换时，子卡片保持挂载。
+ * 两种布局都以父卡片的锚点盒为默认锚点，浏览器会在移动与缩放时持续跟踪。
+ * JavaScript 负责选择布局，并提供当前行在父卡片内的偏移与子卡片的自然高度。 */
+.submenu {
+  /* 同 .portal：上游由外壳提供，这里固定 12px。 */
+  --dsh-menu-window-top: 12px;
+  position: fixed;
+  position-anchor: var(--dsh-submenu-parent);
+  position-visibility: always;
+  margin: 0;
+  z-index: 1101;
+  width: max-content;
+  min-width: min(163px, calc(100vw - 24px));
+  max-width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 12px - var(--dsh-menu-window-top));
+}
+.submenu[data-contextual] {
+  --dsh-menu-window-top: 12px;
+}
+
+/* 侧边卡片：紧贴父卡片、间隔 4px，上边缘对齐当前行，
+ * 放不下时向上移动。唯一的定位兜底是左侧。 */
+.submenu[data-submenu-layout='side'] {
+  top: max(
+    var(--dsh-menu-window-top),
+    min(
+      calc(anchor(top) + var(--dsh-submenu-row-offset, 0px)),
+      calc(100dvh - 12px - var(--dsh-submenu-height, 0px))
+    )
+  );
+  left: calc(anchor(right) + 4px);
+  right: 12px;
+  justify-self: start;
+  height: max-content;
+  position-try-fallbacks: --dsh-submenu-left;
+}
+@position-try --dsh-submenu-left {
+  left: 12px;
+  right: calc(anchor(left) + 4px);
+  justify-self: end;
+}
+
+/* 单面板页面：子级顶替父卡片的位置，宽度不小于父卡片。 */
+.submenu[data-submenu-layout='page'] {
+  top: max(var(--dsh-menu-window-top), anchor(top));
+  bottom: 12px;
+  left: max(12px, anchor(left));
+  right: 12px;
+  align-self: start;
+  justify-self: start;
+  height: fit-content;
+  min-width: min(anchor-size(width), calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+}
+
+/* 保留父级几何与行内容，用于定位和焦点恢复。 */
+.parentPage {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.submenu > .item {
+  flex: none;
+}
+
+.list[data-menu-phase='dismiss'],
+.list[data-menu-phase='replace'] {
+  pointer-events: none;
+}
+.list[data-context-menu].scrollable {
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+}
+
+/* 上游由应用主题消费 data-dsh-automatic-focus 来抑制「自动聚焦」的焦点环
+ * （Escape / 选中后把键盘交回触发器时不该画环）；本库没有主题层，等效规则补在这里，
+ * 只影响被 focusWithoutRing 标记过的元素。 */
+:global([data-dsh-automatic-focus]) {
+  outline: none;
+}

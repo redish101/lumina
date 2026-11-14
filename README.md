@@ -2,7 +2,7 @@
 
 个人使用的 React 组件库。技术栈：**React 19 + TypeScript + CSS Modules + Storybook**，包管理使用 **pnpm**。
 
-> 目前还没有任何组件，`src/index.ts` 是个空入口，等你写第一个组件。
+> 组件：Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys、Pill、Tag、StateDot、TextShimmer、AnimatedRows、Menu、Tooltip、Toast、ImagePreview、ImageLightbox、DraggableImage。每个组件在 Storybook 里都有 Docs 页与若干 story。
 
 ## 不打包
 
@@ -38,21 +38,26 @@ pnpm check         # 类型 + lint + 格式，一把梭
 lumina/
 ├── .storybook/
 │   ├── main.ts              # stories 匹配、addons、framework、docgen、MDX 的 GFM
-│   └── preview.ts           # 全局样式、主题切换（data-theme）、全局 parameters
+│   ├── preview.ts           # 全局样式、主题工具栏、全局 parameters
+│   └── decorators.tsx       # 主题切换：往 body 写 data-lumina-dark-theme
 ├── .vscode/                 # 推荐的编辑器配置
 ├── .github/workflows/ci.yml # typecheck / lint / format / docs:build
 ├── src/
-│   ├── components/          # 组件，一个组件一个目录
-│   │   └── <Name>/
-│   │       ├── <Name>.tsx          # 组件实现
-│   │       ├── <Name>.module.css   # CSS Module 样式（只用设计令牌）
-│   │       ├── <Name>.stories.tsx  # Storybook stories（带 autodocs）
-│   │       └── index.ts            # 组件出口
+│   ├── components/          # 组件，一个组件一个目录（文件名 kebab-case）
+│   │   ├── <name>/
+│   │   │   ├── <name>.tsx          # 组件实现
+│   │   │   ├── <name>.module.css   # CSS Module 样式（只用设计令牌）
+│   │   │   ├── <name>.stories.tsx  # Storybook stories（带 autodocs）
+│   │   │   └── index.tsx           # 组件出口
+│   │   ├── menu/                   # 多文件组件：组件 + hook + 工具函数同目录
+│   │   └── segmented/              # 同目录多个相关组件（Control + Tabs）
+│   ├── icons/                       # 内联 SVG 图标（组件依赖的最小集合）
 │   ├── intro/Introduction.mdx       # 文档首页
 │   ├── styles/
 │   │   ├── tokens.css               # 设计令牌（亮/暗主题变量）
+│   │   ├── primitives.css           # 组件需要、令牌文件里没有的基础变量
 │   │   ├── global.css               # 重置与基础排版
-│   │   └── index.css                # 样式入口
+│   │   └── index.css                # 样式入口（tokens → primitives → global）
 │   └── index.ts                     # 组件库公共 API 入口
 ├── types/css-modules.d.ts   # CSS Modules 类型声明
 ├── tsconfig.json            # 类型检查 / 编辑器用（noEmit）
@@ -63,8 +68,8 @@ lumina/
 
 ## 新增组件
 
-1. 新建 `src/components/<Name>/`，包含 `<Name>.tsx`、`<Name>.module.css`、`<Name>.stories.tsx`、`index.ts`
-2. 样式只引用 `src/styles/tokens.css` 中的 CSS 变量（例如 `var(--lumina-color-primary)`）
+1. 新建 `src/components/<name>/`（kebab-case），包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`
+2. 样式只引用 `src/styles` 里的 CSS 变量：优先 `tokens.css`（例如 `var(--lumina-alias-label-primary)`），缺的基础变量补到 `primitives.css`
 3. 在 `src/index.ts` 中导出组件与 Props 类型
 4. 在 stories 中加上 `tags: ['autodocs']`（或在 `meta` 中设置），Storybook 会自动生成 Docs 页与 props 表格
 5. **用了 hooks 或事件处理的组件，文件第一行写 `'use client'`**——源码会被 Next.js 直接编译，没有这一行会被当成 RSC 处理

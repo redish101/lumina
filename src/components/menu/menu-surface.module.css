@@ -1,0 +1,90 @@
+.surface,
+.backing {
+  border-radius: var(--lumina-radius-lg);
+}
+
+.compact {
+  border-radius: var(--lumina-radius-md);
+}
+
+:where(.surface) {
+  position: relative;
+}
+
+.surface {
+  anchor-name: var(--dsh-menu-anchor);
+  isolation: isolate;
+}
+
+/* 只过滤背景，可以让嵌套菜单与固定定位浮层避开祖先的 backdrop root
+ * 或新的 fixed 定位包含块。 */
+.material {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--lumina-menu-surface-fill);
+  backdrop-filter: var(--lumina-menu-backdrop-filter);
+  pointer-events: none;
+}
+
+.backing {
+  display: none;
+}
+
+/* Chromium 需要在页面内容之后有不透明像素，才能在原生 vibrancy 上做模糊。
+ * body 的 isolation 把这层衬底压到原生窗口之上、页面之下；
+ * CSS 锚点让它无需布局观察器就能刚好覆盖这张菜单。
+ * 注：平台属性沿用上游，由宿主在 html 上设置 data-platform="darwin"；
+ * 本库不自带这层外壳，所以该分支默认不生效。 */
+:global(html[data-platform='darwin']) .backing {
+  display: block;
+  position: fixed;
+  position-anchor: var(--dsh-menu-anchor);
+  top: anchor(top);
+  left: anchor(left);
+  width: anchor-size(width, 0px);
+  height: anchor-size(height, 0px);
+  z-index: -1;
+  background: var(--lumina-alias-bg-base);
+  pointer-events: none;
+}
+
+/* 若在容器上做 opacity，材质就无法模糊页面内容。
+ * 入场动画结束后释放合成层，嵌套菜单才能继续模糊。 */
+.surface[data-menu-phase='enter'] > *,
+.backing[data-menu-phase='enter'] {
+  animation: lumina-context-menu-in var(--dsh-menu-enter) ease-out;
+}
+.surface[data-menu-phase='dismiss'] > *,
+.backing[data-menu-phase='dismiss'],
+.surface[data-menu-phase='replace'] > *,
+.backing[data-menu-phase='replace'] {
+  animation: lumina-context-menu-out var(--dsh-menu-dismiss) ease-in both;
+}
+.surface[data-menu-phase='replace'] > *,
+.backing[data-menu-phase='replace'] {
+  animation-duration: var(--dsh-menu-replace);
+}
+@keyframes lumina-context-menu-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes lumina-context-menu-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .surface[data-menu-phase] > *,
+  .backing[data-menu-phase] {
+    animation-duration: 0ms;
+  }
+}

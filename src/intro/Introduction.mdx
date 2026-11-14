@@ -21,22 +21,37 @@ import { Meta, Title, Subtitle } from '@storybook/addon-docs/blocks';
 | 文档   | Storybook（`@storybook/addon-docs` 自动生成 Docs 页）     |
 | 包管理 | pnpm                                                      |
 
+## 组件
+
+| 分类 | 组件                                                                           |
+| ---- | ------------------------------------------------------------------------------ |
+| 表单 | Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys |
+| 展示 | Pill、Tag、StateDot、TextShimmer、AnimatedRows                                 |
+| 浮层 | Menu、Tooltip、Toast                                                           |
+| 媒体 | ImagePreview、ImageLightbox、DraggableImage                                    |
+
+每个组件的 Docs 页顶部有行为说明，下面是 props 表格（含中文说明与默认值）；story 覆盖了主要变体与边界状态。
+
 ## 目录结构
 
 ```text
 lumina/
-├── .storybook/            # Storybook 配置（main.ts / preview.ts）
+├── .storybook/            # main.ts / preview.ts / decorators.tsx（主题切换）
 ├── src/
-│   ├── components/        # 组件，一个组件一个目录
-│   │   └── <Name>/
-│   │       ├── <Name>.tsx
-│   │       ├── <Name>.module.css
-│   │       ├── <Name>.stories.tsx
-│   │       └── index.ts
-│   ├── styles/            # 设计令牌、全局样式
-│   │   ├── tokens.css
-│   │   ├── global.css
-│   │   └── index.css
+│   ├── components/        # 一个组件一个目录，文件名 kebab-case
+│   │   ├── button/
+│   │   │   ├── button.tsx
+│   │   │   ├── button.module.css
+│   │   │   ├── button.stories.tsx
+│   │   │   └── index.tsx
+│   │   ├── menu/          # 多文件组件：组件 + hook + 工具函数同目录
+│   │   └── segmented/     # 同目录下多个相关组件（Control + Tabs）
+│   ├── icons/             # 内联 SVG 图标（组件依赖的最小集合）
+│   ├── styles/
+│   │   ├── tokens.css     # 设计令牌（亮 / 暗）
+│   │   ├── primitives.css # 组件需要、令牌文件里没有的基础变量
+│   │   ├── global.css     # 全局重置
+│   │   └── index.css      # 样式入口（tokens → primitives → global）
 │   ├── intro/             # 文档页（.mdx）
 │   └── index.ts           # 公共 API 入口
 ├── types/                 # 环境类型声明（CSS Modules 等）
@@ -55,11 +70,12 @@ pnpm lint           # ESLint 检查
 
 ## 新增一个组件
 
-1. 新建 `src/components/<Name>/` 目录，包含 `<Name>.tsx`、`<Name>.module.css`、`<Name>.stories.tsx`、`index.ts`
-2. 样式只引用 `src/styles/tokens.css` 中的 CSS 变量
-3. 在 `src/index.ts` 中导出组件与其 Props 类型
-4. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
-5. 用到 hooks 或事件处理的组件，文件第一行写 `'use client'`
+1. 新建 `src/components/<name>/` 目录，包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`（目录与文件名都用 kebab-case）
+2. 组件从 `forwardRef` 导出，props 抽成导出的 `<Name>Props` 接口，用 `clsx` 拼类名
+3. 样式只引用 `src/styles` 里的 CSS 变量：优先用 `tokens.css`；缺的基础变量补到 `primitives.css`
+4. 在目录的 `index.tsx` 与 `src/index.ts` 中导出组件与其 Props 类型
+5. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
+6. 用到 hooks 或事件处理的组件，文件第一行写 `'use client'`
 
 ## 在 Next.js 里使用
 

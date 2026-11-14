@@ -18,7 +18,8 @@
 }
 
 .checkbox input:focus-visible {
-  outline: var(--lumina-focus-ring-width) solid var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
+  outline: var(--lumina-focus-ring-width) solid
+    var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
   outline-offset: 2px;
 }
 
