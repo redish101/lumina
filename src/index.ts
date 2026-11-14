@@ -1,10 +1,16 @@
 /**
- * Lumina 组件库入口。
+ * Lumina 公共 API 入口。
  *
- * 约定：
- * - 每个组件一个目录：`src/components/<Name>/{<Name>.tsx, <Name>.module.css, <Name>.stories.tsx, index.ts}`
- * - 这里按字母顺序导出所有公共 API，构建时由 vite-plugin-dts 生成 `dist/index.d.ts`
- * - 样式文件不会被打包进 JS 自动注入，使用方需自行 `import 'lumina/style.css'`
+ * 本包**不产出构建产物**：`package.json` 的 `exports` 直接指向这个文件，
+ * 由使用方（Next.js）在自己的编译流程里处理 TSX 与 CSS Modules。
+ *
+ * 新增组件时在这里按字母顺序导出，例如：
+ *
+ * ```ts
+ * export { Button } from './components/button';
+ * export type { ButtonProps } from './components/button';
+ * ```
+ *
+ * 样式入口是 `src/styles/index.css`，对外暴露为 `lumina/styles.css`。
  */
-export { Button } from './components/Button';
-export type { ButtonProps, ButtonSize, ButtonVariant } from './components/Button';
+export {};

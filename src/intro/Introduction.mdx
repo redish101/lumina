@@ -8,15 +8,18 @@ import { Meta, Title, Subtitle } from '@storybook/addon-docs/blocks';
 
 <Subtitle>个人使用的 React 组件库</Subtitle>
 
-基于 **React + TypeScript + Vite** 的组件库，使用 **CSS Modules** 编写样式，并通过 **Storybook** 作为组件文档与开发环境。
+基于 **React + TypeScript** 的组件库，使用 **CSS Modules** 编写样式，通过 **Storybook** 编写文档。源码不打包，交给使用方（Next.js）编译。
 
 ## 技术栈
 
-- **构建**：Vite（library mode，输出 ESM + CJS + 类型声明）
-- **样式**：CSS Modules + 设计令牌（CSS 变量）
-- **类型**：TypeScript（严格模式，`vite-plugin-dts` 生成 `.d.ts`）
-- **文档**：Storybook（`@storybook/addon-docs` 自动生成 Docs 页）
-- **包管理**：pnpm
+| 模块   | 方案                                                      |
+| ------ | --------------------------------------------------------- |
+| 分发   | 直接发布源码，无构建产物（`exports` 指向 `src/index.ts`） |
+| 编译   | 使用方负责：Next.js（App Router）转译 TSX 与 CSS Modules  |
+| 样式   | CSS Modules + 设计令牌（CSS 变量）                        |
+| 类型   | TypeScript（严格模式），类型随源码一起提供                |
+| 文档   | Storybook（`@storybook/addon-docs` 自动生成 Docs 页）     |
+| 包管理 | pnpm                                                      |
 
 ## 目录结构
 
@@ -25,10 +28,10 @@ lumina/
 ├── .storybook/            # Storybook 配置（main.ts / preview.ts）
 ├── src/
 │   ├── components/        # 组件，一个组件一个目录
-│   │   └── Button/
-│   │       ├── Button.tsx
-│   │       ├── Button.module.css
-│   │       ├── Button.stories.tsx
+│   │   └── <Name>/
+│   │       ├── <Name>.tsx
+│   │       ├── <Name>.module.css
+│   │       ├── <Name>.stories.tsx
 │   │       └── index.ts
 │   ├── styles/            # 设计令牌、全局样式
 │   │   ├── tokens.css
@@ -37,17 +40,15 @@ lumina/
 │   ├── intro/             # 文档页（.mdx）
 │   └── index.ts           # 公共 API 入口
 ├── types/                 # 环境类型声明（CSS Modules 等）
-├── vite.config.ts
-├── tsconfig.json          # 开发/编辑器用（noEmit）
-└── tsconfig.build.json    # 构建类型声明用
+└── tsconfig.json          # 类型检查 / 编辑器用（noEmit）
 ```
 
 ## 常用命令
 
 ```bash
 pnpm dev            # 启动 Storybook（端口 6006）
-pnpm docs:build && pnpm docs:preview   # 静态构建并本地预览文档
-pnpm build          # 构建组件库（tsc 类型检查 + vite 打包）
+pnpm docs:build     # 静态构建文档
+pnpm check          # typecheck + lint + format:check
 pnpm typecheck      # 仅做类型检查
 pnpm lint           # ESLint 检查
 ```
@@ -58,8 +59,13 @@ pnpm lint           # ESLint 检查
 2. 样式只引用 `src/styles/tokens.css` 中的 CSS 变量
 3. 在 `src/index.ts` 中导出组件与其 Props 类型
 4. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
+5. 用到 hooks 或事件处理的组件，文件第一行写 `'use client'`
 
-## 使用方注意事项
+## 在 Next.js 里使用
 
-- React / React DOM 作为 `peerDependencies`，构建时已外部化，不会打进产物
-- 样式不会自动注入，需要在入口处手动引入：`import 'lumina/style.css'`（`pnpm build` 后生成 `dist/style.css`）
+要求 **App Router**（Pages Router 下依赖包中的 CSS Modules 会被拒绝）。库本身不做任何编译，所以使用方要让 Next.js 也编译它：
+
+- **pnpm workspace**（推荐）：Turbopack 自动转译，无需配置
+- **装成正式依赖**（`pnpm pack` 后安装 / 发布到 registry）：在 `next.config.ts` 里加 `transpilePackages: ['lumina']`
+
+样式需要在 `app/layout.tsx` 引入一次：`import 'lumina/styles.css'`（只要令牌不要 reset 的话用 `lumina/tokens.css`）。React 是 `peerDependencies`，不会重复安装。
