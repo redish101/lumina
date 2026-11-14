@@ -13,4 +13,7 @@
  *
  * 样式入口是 `src/styles/index.css`，对外暴露为 `lumina/styles.css`。
  */
-export {};
+export { Button } from './components/button';
+export type { ButtonProps, ButtonVariant } from './components/button';
+export { Input } from './components/input';
+export type { InputProps } from './components/input';

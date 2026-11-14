@@ -1,52 +1,583 @@
-/**
- * 设计令牌（Design Tokens）。
- * 组件样式只引用这些变量；主题切换通过覆盖 [data-theme] 下的变量实现。
- */
-
-:root,
-[data-theme='light'] {
-  color-scheme: light;
-
-  --lumina-color-primary: #4f6bff;
-  --lumina-color-neutral: #4b5563;
-  --lumina-color-danger: #dc2626;
-  --lumina-color-on-primary: #ffffff;
-  --lumina-color-text: #111827;
-  --lumina-color-text-muted: #6b7280;
-  --lumina-color-bg: #ffffff;
-  --lumina-color-surface: #f5f6f8;
-  --lumina-color-surface-hover: rgb(0 0 0 / 6%);
-  --lumina-color-border: #d1d5db;
-  --lumina-color-focus-ring: #4f6bff;
-
-  --lumina-radius-sm: 4px;
-  --lumina-radius-md: 6px;
-  --lumina-radius-lg: 10px;
-
-  --lumina-space-1: 0.25rem;
-  --lumina-space-2: 0.5rem;
-  --lumina-space-3: 0.75rem;
-  --lumina-space-4: 1rem;
-  --lumina-space-5: 1.25rem;
-  --lumina-space-6: 1.5rem;
-
-  --lumina-font-size-sm: 0.875rem;
-  --lumina-font-size-md: 1rem;
-  --lumina-font-size-lg: 1.125rem;
+:root {
+  --lumina-font-family-text-default:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --lumina-font-family: var(--lumina-font-family-text-default);
+  --lumina-font-family-brand: 'Montserrat', var(--lumina-font-family-text-default);
+  --lumina-font-family-code-default:
+    'SF Mono', 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier,
+    'PingFang SC', 'Microsoft YaHei';
+  --lumina-font-family-code: var(--lumina-font-family-code-default);
+  --lumina-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --lumina-transition-duration: 0.2s;
+  --lumina-transition-duration-fast: 0.1s;
+  --lumina-transition-duration-slow: 0.3s;
+  --lumina-radius-xs: 4px;
+  --lumina-radius-sm: 8px;
+  --lumina-radius-md: 12px;
+  --lumina-radius-lg: 16px;
+  --lumina-radius-xl: 20px;
+  --lumina-radius-panel: 28px;
 }
 
-[data-theme='dark'] {
-  color-scheme: dark;
+/* Figma font-weight 510 (an SF Pro variable-font weight) always renders as
+   font-weight: 500 in this UI — non-variable webfonts snap intermediate
+   weights unpredictably across platforms. */
+body {
+  --lumina-static-amber-100: rgb(254, 245, 231);
+  --lumina-static-amber-400: rgb(247, 173, 49);
+  --lumina-static-amber-500: rgb(245, 158, 11);
+  --lumina-static-amber-600: rgb(221, 134, 41);
+  --lumina-static-amber-900: rgb(39, 36, 31);
+  --lumina-static-blue-100: rgb(219, 234, 254);
+  --lumina-static-blue-300: rgb(147, 197, 253);
+  --lumina-static-blue-400: rgb(96, 165, 250);
+  --lumina-static-blue-450: rgb(77, 147, 248);
+  --lumina-static-blue-500: rgb(59, 130, 246);
+  --lumina-static-blue-50: rgb(239, 246, 255);
+  --lumina-static-blue-50p: rgb(234, 243, 255);
+  --lumina-static-blue-600: rgb(37, 99, 235);
+  --lumina-static-blue-75: rgb(229, 240, 255);
+  --lumina-static-blue-800: rgb(30, 64, 175);
+  --lumina-static-blue-900: rgb(14, 48, 116);
+  --lumina-static-blue-950: rgb(23, 37, 84);
+  --lumina-static-deepseek-100: rgb(228, 237, 253);
+  --lumina-static-deepseek-200: rgb(211, 226, 255);
+  --lumina-static-deepseek-300: rgb(183, 200, 254);
+  /* Brightened from the platform rgb(103, 158, 254) at the designer's request: legibility on the dark toast surface. */
+  --lumina-static-deepseek-400: rgb(122, 170, 255);
+  --lumina-static-deepseek-450: rgb(86, 134, 254);
+  --lumina-static-deepseek-500: rgb(65, 118, 230);
+  --lumina-static-deepseek-50: rgb(237, 243, 254);
+  --lumina-static-deepseek-600: rgb(72, 104, 178);
+  --lumina-static-deepseek-700-delete: rgb(47, 76, 143);
+  --lumina-static-deepseek-800: rgb(52, 65, 91);
+  --lumina-static-deepseek-900: rgb(40, 49, 66);
+  --lumina-static-green-100: rgb(230, 250, 237);
+  --lumina-static-green-400: rgb(78, 209, 126);
+  --lumina-static-green-500: rgb(34, 197, 94);
+  --lumina-static-green-500-a08: rgb(34 197 94 / 8%);
+  --lumina-static-green-500-a12: rgb(34 197 94 / 12%);
+  --lumina-static-green-900: rgb(35, 60, 44);
+  --lumina-static-neutral-00: rgb(255, 255, 255);
+  --lumina-static-neutral-1000: rgb(0, 0, 0);
+  --lumina-static-neutral-100: rgb(245, 245, 245);
+  --lumina-static-neutral-150: rgb(237, 237, 237);
+  --lumina-static-neutral-200: rgb(229, 229, 229);
+  --lumina-static-neutral-250: rgb(220, 220, 220);
+  --lumina-static-neutral-300: rgb(212, 212, 212);
+  --lumina-static-neutral-400: rgb(162, 164, 166);
+  --lumina-static-neutral-500: rgb(127, 130, 135);
+  --lumina-static-neutral-50: rgb(250, 250, 250);
+  --lumina-static-neutral-550: rgb(101, 103, 107);
+  --lumina-static-neutral-600: rgb(84, 85, 87);
+  --lumina-static-neutral-700: rgb(60, 60, 61);
+  --lumina-static-neutral-800: rgb(41, 41, 41);
+  --lumina-static-neutral-850: rgb(33, 33, 35);
+  --lumina-static-neutral-900: rgb(15, 15, 15);
+  --lumina-static-neutral-bluish-00: rgb(255, 255, 255);
+  --lumina-static-neutral-bluish-1000: rgb(15, 17, 21);
+  --lumina-static-neutral-bluish-100: rgb(235, 238, 242);
+  --lumina-static-neutral-bluish-150: rgb(233, 236, 242);
+  --lumina-static-neutral-bluish-200: rgb(225, 229, 238);
+  --lumina-static-neutral-bluish-300: rgb(207, 211, 214);
+  --lumina-static-neutral-bluish-310: rgb(202, 210, 219);
+  --lumina-static-neutral-bluish-400: rgb(173, 178, 184);
+  --lumina-static-neutral-bluish-500: rgb(151, 157, 166);
+  --lumina-static-neutral-bluish-50: rgb(249, 250, 251);
+  --lumina-static-neutral-bluish-55: rgb(245, 247, 250);
+  --lumina-static-neutral-bluish-600: rgb(129, 133, 140);
+  --lumina-static-neutral-bluish-60: rgb(245, 246, 247);
+  --lumina-static-neutral-bluish-700: rgb(97, 102, 107);
+  --lumina-static-neutral-bluish-750: rgb(67, 69, 74);
+  --lumina-static-neutral-bluish-75: rgb(241, 243, 245);
+  --lumina-static-neutral-bluish-800: rgb(53, 54, 56);
+  --lumina-static-neutral-bluish-850: rgb(44, 44, 46);
+  --lumina-static-neutral-bluish-875: rgb(35, 35, 36);
+  --lumina-static-neutral-bluish-900: rgb(27, 27, 28);
+  --lumina-static-neutral-bluish-90: rgb(237, 240, 244);
+  --lumina-static-neutral-bluish-950: rgb(21, 21, 23);
+  --lumina-static-red-100: rgb(254, 226, 226);
+  --lumina-static-red-400: rgb(242, 90, 90);
+  --lumina-static-red-400-a12: rgb(242 90 90 / 12%);
+  --lumina-static-red-500: rgb(239, 68, 68);
+  --lumina-static-red-50: rgb(254, 242, 242);
+  --lumina-static-red-600: rgb(236, 19, 19);
+  --lumina-static-red-600-a08: rgb(236 19 19 / 8%);
+  --lumina-static-red-900: rgb(87, 12, 12);
+  --lumina-static-violet-400: rgb(167, 139, 250);
+  --lumina-static-violet-600: rgb(124, 58, 237);
+}
 
-  --lumina-color-primary: #7c8cff;
-  --lumina-color-neutral: #9ca3af;
-  --lumina-color-danger: #f87171;
-  --lumina-color-on-primary: #0b1020;
-  --lumina-color-text: #f3f4f6;
-  --lumina-color-text-muted: #9ca3af;
-  --lumina-color-bg: #111827;
-  --lumina-color-surface: #1f2937;
-  --lumina-color-surface-hover: rgb(255 255 255 / 8%);
-  --lumina-color-border: #374151;
-  --lumina-color-focus-ring: #93a0ff;
+body[data-lumina-dark-theme] {
+  --lumina-static-amber-100: rgb(254, 245, 231);
+  --lumina-static-amber-400: rgb(247, 173, 49);
+  --lumina-static-amber-500: rgb(245, 158, 11);
+  --lumina-static-amber-600: rgb(221, 134, 41);
+  --lumina-static-amber-900: rgb(39, 36, 31);
+  --lumina-static-blue-100: rgb(219, 234, 254);
+  --lumina-static-blue-300: rgb(147, 197, 253);
+  --lumina-static-blue-400: rgb(96, 165, 250);
+  --lumina-static-blue-450: rgb(77, 147, 248);
+  --lumina-static-blue-500: rgb(59, 130, 246);
+  --lumina-static-blue-50: rgb(239, 246, 255);
+  --lumina-static-blue-50p: rgb(234, 243, 255);
+  --lumina-static-blue-600: rgb(37, 99, 235);
+  --lumina-static-blue-75: rgb(229, 240, 255);
+  --lumina-static-blue-800: rgb(30, 64, 175);
+  --lumina-static-blue-900: rgb(14, 48, 116);
+  --lumina-static-blue-950: rgb(23, 37, 84);
+  --lumina-static-deepseek-100: rgb(228, 237, 253);
+  --lumina-static-deepseek-200: rgb(211, 226, 255);
+  --lumina-static-deepseek-300: rgb(183, 200, 254);
+  /* Brightened from the platform rgb(103, 158, 254) at the designer's request: legibility on the dark toast surface. */
+  --lumina-static-deepseek-400: rgb(122, 170, 255);
+  --lumina-static-deepseek-450: rgb(86, 134, 254);
+  --lumina-static-deepseek-500: rgb(65, 118, 230);
+  --lumina-static-deepseek-50: rgb(237, 243, 254);
+  --lumina-static-deepseek-600: rgb(72, 104, 178);
+  --lumina-static-deepseek-700-delete: rgb(47, 76, 143);
+  --lumina-static-deepseek-800: rgb(52, 65, 91);
+  --lumina-static-deepseek-900: rgb(40, 49, 66);
+  --lumina-static-green-100: rgb(230, 250, 237);
+  --lumina-static-green-400: rgb(78, 209, 126);
+  --lumina-static-green-500: rgb(34, 197, 94);
+  --lumina-static-green-500-a08: rgb(34 197 94 / 8%);
+  --lumina-static-green-500-a12: rgb(34 197 94 / 12%);
+  --lumina-static-green-900: rgb(35, 60, 44);
+  --lumina-static-neutral-00: rgb(255, 255, 255);
+  --lumina-static-neutral-1000: rgb(0, 0, 0);
+  --lumina-static-neutral-100: rgb(245, 245, 245);
+  --lumina-static-neutral-150: rgb(237, 237, 237);
+  --lumina-static-neutral-200: rgb(229, 229, 229);
+  --lumina-static-neutral-250: rgb(220, 220, 220);
+  --lumina-static-neutral-300: rgb(212, 212, 212);
+  --lumina-static-neutral-400: rgb(162, 164, 166);
+  --lumina-static-neutral-500: rgb(127, 130, 135);
+  --lumina-static-neutral-50: rgb(250, 250, 250);
+  --lumina-static-neutral-550: rgb(101, 103, 107);
+  --lumina-static-neutral-600: rgb(84, 85, 87);
+  --lumina-static-neutral-700: rgb(60, 60, 61);
+  --lumina-static-neutral-800: rgb(41, 41, 41);
+  --lumina-static-neutral-850: rgb(33, 33, 35);
+  --lumina-static-neutral-900: rgb(15, 15, 15);
+  --lumina-static-neutral-bluish-00: rgb(255, 255, 255);
+  --lumina-static-neutral-bluish-1000: rgb(15, 17, 21);
+  --lumina-static-neutral-bluish-100: rgb(235, 238, 242);
+  --lumina-static-neutral-bluish-150: rgb(233, 236, 242);
+  --lumina-static-neutral-bluish-200: rgb(225, 229, 238);
+  --lumina-static-neutral-bluish-300: rgb(207, 211, 214);
+  --lumina-static-neutral-bluish-310: rgb(202, 210, 219);
+  --lumina-static-neutral-bluish-400: rgb(173, 178, 184);
+  --lumina-static-neutral-bluish-500: rgb(151, 157, 166);
+  --lumina-static-neutral-bluish-50: rgb(249, 250, 251);
+  --lumina-static-neutral-bluish-55: rgb(245, 247, 250);
+  --lumina-static-neutral-bluish-600: rgb(129, 133, 140);
+  --lumina-static-neutral-bluish-60: rgb(249, 250, 251);
+  --lumina-static-neutral-bluish-700: rgb(97, 102, 107);
+  --lumina-static-neutral-bluish-750: rgb(67, 69, 74);
+  --lumina-static-neutral-bluish-75: rgb(241, 243, 245);
+  --lumina-static-neutral-bluish-800: rgb(53, 54, 56);
+  --lumina-static-neutral-bluish-850: rgb(44, 44, 46);
+  --lumina-static-neutral-bluish-875: rgb(35, 35, 36);
+  --lumina-static-neutral-bluish-900: rgb(27, 27, 28);
+  --lumina-static-neutral-bluish-90: rgb(237, 240, 244);
+  --lumina-static-neutral-bluish-950: rgb(21, 21, 23);
+  --lumina-static-red-100: rgb(254, 226, 226);
+  --lumina-static-red-400: rgb(242, 90, 90);
+  --lumina-static-red-400-a12: rgb(242 90 90 / 12%);
+  --lumina-static-red-500: rgb(239, 68, 68);
+  --lumina-static-red-50: rgb(254, 242, 242);
+  --lumina-static-red-600: rgb(236, 19, 19);
+  --lumina-static-red-600-a08: rgb(236 19 19 / 8%);
+  --lumina-static-red-900: rgb(87, 12, 12);
+  --lumina-static-violet-400: rgb(167, 139, 250);
+  --lumina-static-violet-600: rgb(124, 58, 237);
+}
+
+body {
+  --lumina-alias-bg-base: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-bg-document-preview: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-bg-document-selection: color-mix(
+    in srgb,
+    var(--lumina-static-blue-500) 40%,
+    transparent
+  );
+  --lumina-alias-label-document-preview: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-bg-layer-1: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-bg-layer-2: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-bg-layer-3: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-bg-mask-1: rgba(0, 0, 0, 0.24);
+  --lumina-alias-bg-mask-2: rgba(0, 0, 0, 0.12);
+  --lumina-alias-bg-mask-3: rgba(0, 0, 0, 0.48);
+  --lumina-alias-bg-mask-photo: rgba(0, 0, 0, 0.88);
+  --lumina-alias-bg-mask-drop: rgba(255, 255, 255, 0.7);
+  --lumina-alias-bg-module-platform: var(--lumina-static-neutral-bluish-60);
+  --lumina-alias-bg-multi-select: var(--lumina-static-neutral-bluish-60);
+  --lumina-alias-bg-overlay: var(--lumina-static-neutral-bluish-150);
+  --lumina-alias-bg-skeleton: rgba(0, 0, 0, 0.04);
+  --lumina-alias-border-inverted2: rgba(0, 0, 0, 0);
+  --lumina-alias-border-inverted: rgba(0, 0, 0, 0);
+  --lumina-alias-border-l1: rgba(0, 0, 0, 0.04);
+  --lumina-alias-border-l2-darkmode-thin: rgba(0, 0, 0, 0.1);
+  --lumina-alias-border-l2: rgba(0, 0, 0, 0.1);
+  --lumina-alias-border-l3: rgba(0, 0, 0, 0.12);
+  --lumina-alias-border-l4: rgba(0, 0, 0, 0.16);
+  --lumina-alias-border-selected: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-brand-primary-invert: var(--lumina-static-neutral-bluish-1000);
+  --lumina-alias-brand-primary-new-colorprimary-new-color: rgb(65, 118, 230);
+  --lumina-alias-brand-primary: var(--lumina-static-neutral-bluish-1000);
+  --lumina-alias-brand-text: var(--lumina-static-neutral-bluish-1000);
+  --lumina-alias-button-contrast-fill: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-button-elevated-fill: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-button-floating-fill: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-button-floating-hover: var(--lumina-static-neutral-bluish-75);
+  --lumina-alias-button-ghost-active-border: var(--lumina-static-neutral-bluish-500);
+  --lumina-alias-button-ghost-active-fill: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-button-ghost-active-hover: var(--lumina-static-neutral-bluish-150);
+  --lumina-alias-button-info-fill: var(--lumina-static-deepseek-500);
+  --lumina-alias-button-info-hover: var(--lumina-static-deepseek-400);
+  --lumina-alias-button-primary-dimmed: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-button-primary-fill: var(--lumina-alias-brand-primary);
+  --lumina-alias-button-primary-hover: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-button-tool-bar-fill-invisible: rgba(31, 31, 31, 0.36);
+  --lumina-alias-button-tool-bar-fill: rgba(84, 85, 87, 0.5);
+  --lumina-alias-button-tool-bar-hover: rgba(84, 85, 87, 0.6);
+  --lumina-alias-card-fill: var(--lumina-static-neutral-50);
+  --lumina-alias-card-fill-hover: var(--lumina-static-neutral-100);
+  --lumina-alias-card-tile-fill: color-mix(
+    in srgb,
+    var(--lumina-static-neutral-00) 50%,
+    transparent
+  );
+  --lumina-alias-chart-messages: var(--lumina-static-blue-450);
+  --lumina-alias-chart-system: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-chart-tools: var(--lumina-static-violet-400);
+  --lumina-alias-hovercard-bg: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-hovercard-label-primary: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-hovercard-label-secondary: var(--lumina-static-neutral-bluish-300);
+  --lumina-alias-hovercard-label-tertiary: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-hovercard-state-done: var(--lumina-static-violet-400);
+  --lumina-alias-hovercard-state-error: var(--lumina-static-red-400);
+  --lumina-alias-illustration-background: var(--lumina-static-neutral-bluish-55);
+  --lumina-alias-illustration-backing: var(--lumina-static-neutral-bluish-310);
+  --lumina-alias-illustration-detail: var(--lumina-static-neutral-bluish-310);
+  --lumina-alias-illustration-inset: var(--lumina-alias-illustration-surface);
+  --lumina-alias-illustration-shadow: var(--lumina-alias-illustration-surface);
+  --lumina-alias-illustration-surface: var(--lumina-static-neutral-bluish-90);
+  --lumina-alias-interactive-bg-active: rgba(38, 49, 72, 0.1);
+  --lumina-alias-interactive-bg-hover-accent: rgba(38, 49, 72, 0.14);
+  --lumina-alias-interactive-bg-hover-danger: rgba(236, 19, 19, 0.05);
+  --lumina-alias-interactive-bg-hover-solid: var(--lumina-static-neutral-bluish-75);
+  --lumina-alias-interactive-bg-hover: rgba(38, 49, 72, 0.06);
+  --lumina-alias-json-tree-hover: rgb(60 64 67 / 4%);
+  --lumina-alias-json-tree-icon: #5f6368;
+  --lumina-alias-json-tree-keyword: #1c00cf;
+  --lumina-alias-json-tree-number: #1c00cf;
+  --lumina-alias-json-tree-property: #881391;
+  --lumina-alias-json-tree-punctuation: #202124;
+  --lumina-alias-json-tree-string: #c41a16;
+  --lumina-alias-label-caption: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-label-deep-diving: color-mix(
+    in srgb,
+    var(--lumina-static-deepseek-500) 70%,
+    var(--lumina-static-blue-950)
+  );
+  --lumina-alias-label-deep-diving-shimmer: color-mix(
+    in srgb,
+    var(--lumina-static-deepseek-500) 30%,
+    var(--lumina-static-blue-950)
+  );
+  --lumina-alias-label-dimmed: var(--lumina-static-neutral-bluish-200);
+  --lumina-alias-label-on-color: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-label-primary-bluish: var(--lumina-static-blue-900);
+  --lumina-alias-label-primary-dimmed: var(--lumina-static-neutral-bluish-950);
+  --lumina-alias-label-primary-foreground: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-label-primary-inverted: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-label-primary: var(--lumina-static-neutral-bluish-1000);
+  --lumina-alias-label-secondary: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-label-shimmer: color-mix(
+    in srgb,
+    var(--lumina-static-neutral-1000) 30%,
+    transparent
+  );
+  --lumina-alias-label-tertiary: var(--lumina-static-neutral-bluish-600);
+  --lumina-alias-menu-icon: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-link: var(--lumina-static-deepseek-500);
+  --lumina-alias-markdown-citation: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-markdown-code-block-banner: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-markdown-code-block: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-markdown-code-segment-selected: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-markdown-code-segment-unselected: var(--lumina-static-neutral-bluish-75);
+  --lumina-alias-markdown-inline-code: var(--lumina-static-neutral-50);
+  --lumina-alias-markdown-placeholder: var(--lumina-static-neutral-bluish-60);
+  --lumina-alias-markdown-tag: var(--lumina-static-neutral-bluish-75);
+  --lumina-alias-scrollbar-bg-l1: var(--lumina-static-neutral-200);
+  --lumina-alias-scrollbar-bg-l2: var(--lumina-static-neutral-200);
+  --lumina-alias-scrollbar-hover-l1: var(--lumina-static-neutral-300);
+  --lumina-alias-scrollbar-hover-l2: var(--lumina-static-neutral-300);
+  --lumina-alias-state-business-primary: var(--lumina-static-deepseek-500);
+  --lumina-alias-state-business-tertiary: var(--lumina-static-deepseek-100);
+  --lumina-alias-code-diff-added: var(--lumina-static-green-500-a08);
+  --lumina-alias-code-diff-deleted: var(--lumina-static-red-600-a08);
+  --lumina-alias-file-diff-added-bg: rgb(230, 244, 231);
+  --lumina-alias-file-diff-added-gutter: rgb(237, 247, 237);
+  --lumina-alias-file-diff-added-marker: rgb(1, 162, 65);
+  --lumina-alias-file-diff-deleted-bg: rgb(252, 230, 226);
+  --lumina-alias-file-diff-deleted-gutter: rgb(253, 236, 233);
+  --lumina-alias-file-diff-deleted-marker: rgb(186, 39, 35);
+  --lumina-alias-state-done-primary: var(--lumina-static-violet-600);
+  --lumina-alias-state-error-primary: var(--lumina-static-red-600);
+  --lumina-alias-state-error-secondary: var(--lumina-static-red-400);
+  --lumina-alias-state-idle-primary: var(--lumina-static-neutral-300);
+  --lumina-alias-state-success-primary: var(--lumina-static-green-500);
+  --lumina-alias-state-success-secondary: var(--lumina-static-green-400);
+  --lumina-alias-state-success-tertiary: var(--lumina-static-green-100);
+  --lumina-alias-state-warn-label: var(--lumina-static-amber-600);
+  --lumina-alias-state-warn-primary: var(--lumina-static-amber-500);
+  --lumina-alias-state-warn-secondary: var(--lumina-static-amber-400);
+  --lumina-alias-state-warn-tertiary: var(--lumina-static-amber-100);
+  --lumina-alias-switch-thumb: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-toast-action: var(--lumina-static-deepseek-400);
+  --lumina-alias-toast-bg: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-toast-label: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-tooltip-bg: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-tooltip-key-bg: color-mix(in srgb, var(--lumina-alias-tooltip-bg), white 18%);
+  --lumina-alias-tooltip-label: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-trajectory-accent: var(--lumina-static-blue-500);
+  --lumina-alias-turn-trigger-bg: var(--lumina-alias-markdown-code-block);
+  --lumina-alias-turn-trigger-bg-hover: var(--lumina-alias-interactive-bg-hover);
+  --lumina-specific-bubble-highlight: var(--lumina-static-deepseek-200);
+  --lumina-specific-bubble: var(--lumina-static-deepseek-50);
+  /* Black 8% in both palettes: the upload card keeps its original track value. */
+  --lumina-specific-file-upload-track: rgba(0, 0, 0, 0.08);
+  --lumina-specific-guide-hero: var(--lumina-static-neutral-200);
+  --lumina-specific-sidebar-right-flash: var(
+    --lumina-alias-brand-primary-new-colorprimary-new-color
+  );
+  --lumina-specific-input-major: var(--lumina-static-neutral-bluish-00);
+  --lumina-specific-login-input: var(--lumina-static-neutral-bluish-50);
+  --lumina-menu-surface-fill: rgba(252, 253, 254, 0.7);
+  --lumina-alias-menu-group-header-fill: rgba(248, 249, 250, 0.94);
+  --lumina-specific-menu: var(--lumina-menu-surface-fill);
+  --lumina-specific-selector: var(--lumina-static-neutral-bluish-60);
+  --lumina-specific-sidebar-fill: var(--lumina-static-neutral-bluish-50);
+  --lumina-specific-sidebar-nav-item-active-accent: var(--lumina-static-deepseek-100);
+  --lumina-specific-sidebar-nav-item-active: var(--lumina-static-neutral-bluish-100);
+  --lumina-specific-tip: var(--lumina-static-neutral-bluish-60);
+
+  background-color: var(--lumina-alias-bg-base);
+}
+
+body[data-lumina-dark-theme] {
+  --lumina-alias-bg-base: var(--lumina-static-neutral-bluish-950);
+  --lumina-alias-bg-document-preview: var(--lumina-static-neutral-bluish-950);
+  --lumina-alias-bg-document-selection: color-mix(
+    in srgb,
+    var(--lumina-static-blue-500) 40%,
+    transparent
+  );
+  --lumina-alias-label-document-preview: var(--lumina-static-neutral-bluish-300);
+  --lumina-alias-bg-layer-1: var(--lumina-static-neutral-bluish-875);
+  --lumina-alias-bg-layer-2: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-bg-layer-3: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-bg-mask-1: rgba(0, 0, 0, 0.5);
+  --lumina-alias-bg-mask-2: rgba(0, 0, 0, 0.2);
+  --lumina-alias-bg-mask-3: rgba(0, 0, 0, 0.48);
+  --lumina-alias-bg-mask-photo: rgba(0, 0, 0, 0.88);
+  --lumina-alias-bg-mask-drop: rgba(39, 39, 48, 0.7);
+  --lumina-alias-bg-module-platform: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-bg-multi-select: var(--lumina-static-neutral-850);
+  --lumina-alias-bg-overlay: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
+  --lumina-alias-border-inverted2: rgba(255, 255, 255, 0.08);
+  --lumina-alias-border-inverted: rgba(255, 255, 255, 0.06);
+  --lumina-alias-border-l1: rgba(255, 255, 255, 0.06);
+  --lumina-alias-border-l2-darkmode-thin: rgba(255, 255, 255, 0.06);
+  --lumina-alias-border-l2: rgba(255, 255, 255, 0.12);
+  --lumina-alias-border-l3: rgba(255, 255, 255, 0.16);
+  --lumina-alias-border-l4: rgba(255, 255, 255, 0.2);
+  --lumina-alias-border-selected: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-brand-primary-invert: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-brand-primary-new-colorprimary-new-color: var(--lumina-static-deepseek-450);
+  --lumina-alias-brand-primary: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-brand-text: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-button-contrast-fill: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-button-elevated-fill: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-button-floating-fill: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-button-floating-hover: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-button-ghost-active-border: var(--lumina-static-neutral-bluish-600);
+  --lumina-alias-button-ghost-active-fill: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-button-ghost-active-hover: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-button-info-fill: var(--lumina-static-deepseek-400);
+  --lumina-alias-button-info-hover: var(--lumina-static-deepseek-500);
+  --lumina-alias-button-primary-dimmed: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-button-primary-fill: var(--lumina-alias-brand-primary);
+  --lumina-alias-button-primary-hover: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-button-tool-bar-fill-invisible: rgba(31, 31, 31, 0.36);
+  --lumina-alias-button-tool-bar-fill: rgba(84, 85, 87, 0.5);
+  --lumina-alias-button-tool-bar-hover: rgba(84, 85, 87, 0.6);
+  --lumina-alias-card-fill: var(--lumina-static-neutral-850);
+  --lumina-alias-card-fill-hover: var(--lumina-static-neutral-800);
+  --lumina-alias-card-tile-fill: color-mix(
+    in srgb,
+    var(--lumina-static-neutral-00) 5%,
+    transparent
+  );
+  --lumina-alias-chart-messages: var(--lumina-static-blue-450);
+  --lumina-alias-chart-system: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-chart-tools: var(--lumina-static-violet-400);
+  --lumina-alias-hovercard-bg: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-hovercard-label-primary: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-hovercard-label-secondary: var(--lumina-static-neutral-bluish-300);
+  --lumina-alias-hovercard-label-tertiary: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-hovercard-state-done: var(--lumina-static-violet-400);
+  --lumina-alias-hovercard-state-error: var(--lumina-static-red-400);
+  --lumina-alias-illustration-background: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-illustration-backing: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-illustration-detail: var(--lumina-static-neutral-bluish-600);
+  --lumina-alias-illustration-inset: var(--lumina-alias-illustration-backing);
+  --lumina-alias-illustration-shadow: var(--lumina-alias-illustration-backing);
+  --lumina-alias-illustration-surface: var(--lumina-static-neutral-bluish-700);
+  --lumina-alias-interactive-bg-active: rgba(255, 255, 255, 0.14);
+  --lumina-alias-interactive-bg-hover-accent: rgba(255, 255, 255, 0.24);
+  --lumina-alias-interactive-bg-hover-danger: rgba(242, 90, 90, 0.15);
+  --lumina-alias-interactive-bg-hover-solid: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-interactive-bg-hover: rgba(255, 255, 255, 0.08);
+  --lumina-alias-json-tree-hover: rgb(232 234 237 / 5%);
+  --lumina-alias-json-tree-icon: #9aa0a6;
+  --lumina-alias-json-tree-keyword: #99c8ff;
+  --lumina-alias-json-tree-number: #99c8ff;
+  --lumina-alias-json-tree-property: #5db0d7;
+  --lumina-alias-json-tree-punctuation: #e8eaed;
+  --lumina-alias-json-tree-string: #f28b82;
+  --lumina-alias-label-caption: var(--lumina-static-neutral-bluish-600);
+  --lumina-alias-label-deep-diving: color-mix(
+    in srgb,
+    var(--lumina-static-deepseek-450) 55%,
+    var(--lumina-static-neutral-bluish-400)
+  );
+  --lumina-alias-label-deep-diving-shimmer: color-mix(
+    in srgb,
+    var(--lumina-static-blue-300) 65%,
+    var(--lumina-static-deepseek-400)
+  );
+  --lumina-alias-label-dimmed: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-label-on-color: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-label-primary-bluish: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-label-primary-dimmed: var(--lumina-static-neutral-bluish-100);
+  --lumina-alias-label-primary-foreground: var(--lumina-static-neutral-bluish-1000);
+  --lumina-alias-label-primary-inverted: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-label-primary: var(--lumina-static-neutral-bluish-50);
+  --lumina-alias-label-secondary: var(--lumina-static-neutral-bluish-300);
+  --lumina-alias-label-shimmer: color-mix(
+    in srgb,
+    var(--lumina-static-neutral-00) 45%,
+    transparent
+  );
+  --lumina-alias-label-tertiary: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-menu-icon: var(--lumina-alias-label-primary-dimmed);
+  --lumina-alias-link: var(--lumina-static-deepseek-400);
+  --lumina-alias-markdown-citation: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-markdown-code-block-banner: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-markdown-code-block: var(--lumina-static-neutral-bluish-900);
+  --lumina-alias-markdown-code-segment-selected: var(--lumina-static-neutral-bluish-800);
+  --lumina-alias-markdown-code-segment-unselected: var(--lumina-static-neutral-bluish-900);
+  --lumina-alias-markdown-inline-code: var(--lumina-static-neutral-800);
+  --lumina-alias-markdown-placeholder: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-markdown-tag: var(--lumina-static-neutral-bluish-850);
+  --lumina-alias-scrollbar-bg-l1: var(--lumina-static-neutral-700);
+  --lumina-alias-scrollbar-bg-l2: var(--lumina-static-neutral-600);
+  --lumina-alias-scrollbar-hover-l1: var(--lumina-static-neutral-600);
+  --lumina-alias-scrollbar-hover-l2: var(--lumina-static-neutral-550);
+  --lumina-alias-state-business-primary: var(--lumina-static-deepseek-400);
+  --lumina-alias-state-business-tertiary: var(--lumina-static-deepseek-800);
+  --lumina-alias-code-diff-added: var(--lumina-static-green-500-a12);
+  --lumina-alias-code-diff-deleted: var(--lumina-static-red-400-a12);
+  --lumina-alias-file-diff-added-bg: rgb(31, 49, 36);
+  --lumina-alias-file-diff-added-gutter: rgb(19, 32, 22);
+  --lumina-alias-file-diff-added-marker: rgb(65, 201, 119);
+  --lumina-alias-file-diff-deleted-bg: rgb(60, 31, 27);
+  --lumina-alias-file-diff-deleted-gutter: rgb(40, 19, 14);
+  --lumina-alias-file-diff-deleted-marker: rgb(250, 66, 62);
+  --lumina-alias-state-done-primary: var(--lumina-static-violet-400);
+  --lumina-alias-state-error-primary: var(--lumina-static-red-400);
+  --lumina-alias-state-error-secondary: var(--lumina-static-red-400);
+  --lumina-alias-state-idle-primary: var(--lumina-static-neutral-600);
+  --lumina-alias-state-success-primary: var(--lumina-static-green-500);
+  --lumina-alias-state-success-secondary: var(--lumina-static-green-400);
+  --lumina-alias-state-success-tertiary: var(--lumina-static-green-900);
+  --lumina-alias-state-warn-label: var(--lumina-static-amber-600);
+  --lumina-alias-state-warn-primary: var(--lumina-static-amber-500);
+  --lumina-alias-state-warn-secondary: var(--lumina-static-amber-400);
+  --lumina-alias-state-warn-tertiary: var(--lumina-static-amber-900);
+  --lumina-alias-switch-thumb: var(--lumina-static-neutral-bluish-400);
+  --lumina-alias-toast-action: var(--lumina-static-deepseek-400);
+  --lumina-alias-toast-bg: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-toast-label: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-turn-trigger-bg: var(--lumina-alias-interactive-bg-hover);
+  --lumina-alias-turn-trigger-bg-hover: var(--lumina-alias-interactive-bg-active);
+  --lumina-alias-tooltip-bg: var(--lumina-static-neutral-bluish-750);
+  --lumina-alias-tooltip-key-bg: color-mix(in srgb, var(--lumina-alias-tooltip-bg), white 18%);
+  --lumina-alias-tooltip-label: var(--lumina-static-neutral-bluish-00);
+  --lumina-alias-trajectory-accent: var(--lumina-static-blue-500);
+  --lumina-specific-bubble-highlight: var(--lumina-static-neutral-bluish-750);
+  --lumina-specific-bubble: var(--lumina-static-neutral-bluish-850);
+  --lumina-specific-file-upload-track: rgba(0, 0, 0, 0.08);
+  --lumina-specific-guide-hero: var(--lumina-static-neutral-700);
+  --lumina-specific-sidebar-right-flash: var(--lumina-static-neutral-00);
+  --lumina-specific-input-major: var(--lumina-static-neutral-bluish-850);
+  --lumina-specific-login-input: var(--lumina-static-neutral-bluish-900);
+  --lumina-menu-surface-fill: rgba(48, 49, 54, 0.64);
+  --lumina-alias-menu-group-header-fill: rgba(48, 49, 54, 0.94);
+  --lumina-specific-menu: var(--lumina-menu-surface-fill);
+  --lumina-specific-selector: var(--lumina-static-neutral-bluish-800);
+  --lumina-specific-sidebar-fill: var(--lumina-static-neutral-bluish-900);
+  --lumina-specific-sidebar-nav-item-active-accent: var(--lumina-static-neutral-bluish-800);
+  --lumina-specific-sidebar-nav-item-active: var(--lumina-static-neutral-bluish-750);
+  --lumina-specific-tip: var(--lumina-static-neutral-bluish-800);
+}
+
+/* Overlays without MenuSurface's opaque backing cannot blur page content over
+ * native vibrancy reliably, so their fill stays nearly opaque on macOS. */
+html[data-platform='darwin'] body {
+  --lumina-specific-menu: rgba(248, 249, 250, 0.94);
+}
+
+html[data-platform='darwin'] body[data-lumina-dark-theme] {
+  --lumina-specific-menu: rgba(48, 49, 54, 0.94);
+}
+
+/* macOS vibrancy sidebar: glass control fills (the collapsed rail drops the
+ * light fill but keeps the dark one), the column's top and bottom
+ * washes with their fully transparent enlumina, and its translucent tint. Dark drops the tint's blue cast (it realumina
+ * purple over dark fills) and thins it so more wallpaper shows. */
+html[data-platform='darwin'] body {
+  --lumina-specific-sidebar-glass-collapsed-fill: transparent;
+  --lumina-specific-sidebar-glass-collapsed-hover: var(--lumina-alias-interactive-bg-hover);
+  --lumina-specific-sidebar-glass-fill: rgb(255 255 255 / 0.55);
+  --lumina-specific-sidebar-glass-hover: rgb(255 255 255 / 0.3);
+  --lumina-specific-sidebar-tint: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--lumina-specific-sidebar-fill) 97%, rgb(122 155 240)) 40%,
+    transparent
+  );
+  --lumina-specific-sidebar-wash-bottom: rgb(143 137 184 / 0.09);
+  --lumina-specific-sidebar-wash-bottom-clear: rgb(143 137 184 / 0);
+  --lumina-specific-sidebar-wash-top: rgb(122 155 240 / 0.1);
+  --lumina-specific-sidebar-wash-top-clear: rgb(122 155 240 / 0);
+}
+
+html[data-platform='darwin'] body[data-lumina-dark-theme] {
+  --lumina-specific-sidebar-glass-collapsed-fill: var(--lumina-specific-sidebar-glass-fill);
+  --lumina-specific-sidebar-glass-collapsed-hover: var(--lumina-specific-sidebar-glass-hover);
+  --lumina-specific-sidebar-glass-fill: rgb(255 255 255 / 0.15);
+  --lumina-specific-sidebar-glass-hover: rgb(255 255 255 / 0.2);
+  --lumina-specific-sidebar-tint: color-mix(
+    in srgb,
+    var(--lumina-specific-sidebar-fill) 50%,
+    transparent
+  );
+  --lumina-specific-sidebar-wash-bottom: rgb(143 137 184 / 0.07);
+  --lumina-specific-sidebar-wash-top: rgb(122 155 240 / 0.08);
 }
