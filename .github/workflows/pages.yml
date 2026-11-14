@@ -1,0 +1,49 @@
+name: Docs
+
+# 推送到 main 时构建 Storybook 并发布到 GitHub Pages。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm docs:build
+
+      - name: 关掉 Jekyll
+        # Pages 的默认处理会忽略下划线开头的文件（Storybook 产物里有 sb-* 之类），用 .nojekyll 绕过
+        run: touch storybook-static/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: storybook-static
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

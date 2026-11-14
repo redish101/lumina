@@ -1,0 +1,69 @@
+name: Release
+
+# 推送 v 开头的 tag 时发布到官方 npm registry，并创建 GitHub Release。
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # 创建 Release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          # 生成 .npmrc 里的 //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: 校验 tag 与 package.json 版本一致
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "✖ tag $GITHUB_REF_NAME 与 package.json 的 $version 不一致"
+            echo "  先 pnpm version $tag，再 git push --follow-tags"
+            exit 1
+          fi
+          echo "✔ 发布 $version"
+
+      - run: pnpm check
+      - run: pnpm build
+
+      - name: 确认 dist 完整
+        run: |
+          test -f dist/index.js
+          test -f dist/index.d.ts
+          test -f dist/styles/tokens.css
+          test -f dist/styles/global.css
+
+      - name: 发布到 npm
+        run: |
+          # 预发布版本（如 v0.2.0-beta.1）走 next 标签，正式版本走 latest
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then dist_tag=next; else dist_tag=latest; fi
+          pnpm publish --no-git-checks --access public --tag "$dist_tag" \
+            --registry https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          name: ${{ github.ref_name }}

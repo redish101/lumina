@@ -83,7 +83,7 @@ pnpm lint           # ESLint 检查
 ## 在应用里使用
 
 ```tsx
-import { Button } from 'lumina';
+import { Button } from '@redish101/lumina';
 
 <Button variant="primary">你好</Button>;
 ```
@@ -92,7 +92,7 @@ import { Button } from 'lumina';
 - 产物已编译，**不需要** `transpilePackages`
 - 未 import 的组件不会进入产物（`preserveModules` + 每包独立 CSS）
 - 入口不带 `'use client'`：Tag、StateDot、ShortcutKeys 这类纯展示组件在 Server Component 里直接渲染，不进客户端包
-- 想要库自带的重置再额外 `import 'lumina/reset.css'`；只引令牌用 `lumina/tokens.css`
+- 想要库自带的重置再额外 `import '@redish101/lumina/reset.css'`；只引令牌用 `@redish101/lumina/tokens.css`
 - React 是 `peerDependencies`，不会重复安装；包本身没有运行时依赖
 
 Next.js 要求 **App Router**：Pages Router 不允许依赖包内出现 CSS Modules。

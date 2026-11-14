@@ -3,16 +3,18 @@
 个人使用的 React 组件库。技术栈：**React 19 + TypeScript + CSS Modules + Vite（库构建）+ Storybook**，包管理使用 **pnpm**。
 
 > 组件：Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys、Pill、Tag、StateDot、TextShimmer、AnimatedRows、Menu、Tooltip、Toast、ImagePreview、ImageLightbox、DraggableImage。每个组件在 Storybook 里都有 Docs 页与若干 story。
+>
+> 在线文档：<https://redish101.github.io/lumina/>
 
 ## 构建产物
 
 `pnpm build` 用 Vite 的库模式产出 `dist/`，使用方装的是编译好的 ESM，不再需要 `transpilePackages`：
 
-- **按模块分包**：`rollupOptions.output.preserveModules` 保留 `src/` 的模块粒度，`import { Button } from 'lumina'` 只会把 Button 及其依赖打进产物
+- **按模块分包**：`rollupOptions.output.preserveModules` 保留 `src/` 的模块粒度，`import { Button } from '@redish101/lumina'` 只会把 Button 及其依赖打进产物
 - **样式随组件走**：`cssCodeSplit: true` + `vite-plugin-lib-inject-css`，每个 chunk 顶部自动 `import './xxx.css'`，用到哪个组件才加载哪份样式
 - **类型**：`vite-plugin-dts` 按源码结构输出 `dist/**/*.d.ts`
 - **设计令牌**：入口 `src/index.ts` 引入 `styles/tokens.css`，所以任意组件生效时令牌一定在场（约 34 kB，不会被 tree-shake）
-- **全局重置**不自动注入，需要时 `import 'lumina/reset.css'`
+- **全局重置**不自动注入，需要时 `import '@redish101/lumina/reset.css'`
 
 三个实现细节值得记住，改配置时别踩回去：
 
@@ -80,7 +82,7 @@ lumina/
 │   ├── intro/Introduction.mdx       # 文档首页
 │   ├── styles/
 │   │   ├── tokens.css               # 设计令牌（亮/暗主题变量、elevation）
-│   │   ├── global.css               # 重置与基础排版（对外是 lumina/reset.css）
+│   │   ├── global.css               # 重置与基础排版（对外是 @redish101/lumina/reset.css）
 │   │   └── index.css                # Storybook 用的样式入口（tokens → global）
 │   └── index.ts                     # 公共 API 入口（导入令牌，不带 `'use client'`）
 ├── dist/                    # 构建产物（不提交）
@@ -111,48 +113,55 @@ pnpm add lumina          # 或从私有 registry 安装，见下一节
 
 ```tsx
 // app/layout.tsx
-import 'lumina/reset.css'; // 可选：需要库自带的重置时
-import { Button } from 'lumina';
+import '@redish101/lumina/reset.css'; // 可选：需要库自带的重置时
+import { Button } from '@redish101/lumina';
 
 export default function Page() {
   return <Button variant="primary">你好</Button>;
 }
 ```
 
-- 组件样式（CSS Modules）和设计令牌由 `import { … } from 'lumina'` 自动带出，不需要额外的 CSS 入口
+- 组件样式（CSS Modules）和设计令牌由 `import { … } from '@redish101/lumina'` 自动带出，不需要额外的 CSS 入口
 - Tag / StateDot / ShortcutKeys 可以在 Server Component 里直接渲染，不下发 JS；交互组件自动成为客户端边界，无需手写 `'use client'`
 - **不需要** `transpilePackages`：产物已经是编译好的 JS + CSS
-- 只引令牌、不要 reset：`import 'lumina/tokens.css'`
-- 本包是纯 ESM，Node 侧 `require('lumina')` 不可用（`import` 正常）
+- 只引令牌、不要 reset：`import '@redish101/lumina/tokens.css'`
+- 本包是纯 ESM，Node 侧 `require('@redish101/lumina')` 不可用（`import` 正常）
 
 Next.js 要求 **App Router**：Pages Router 不允许依赖包内出现 CSS Modules，构建产物里的 CSS 是普通 `.css` 文件，也不建议让 Pages Router 处理。
 
-## 发布到私有 registry
+## 文档部署
 
-`private: true` 只在本地开发时保留，发布前改成 `false` 并换成带 scope 的包名（GitHub Packages 要求 scope 等于账号名）：
+Storybook 静态产物由 [.github/workflows/pages.yml](.github/workflows/pages.yml) 发布到 GitHub Pages：推到 `main`（或手动 `workflow_dispatch`）后构建 `storybook-static/` 并上传。
 
-```jsonc
-{
-  "name": "@your-name/lumina",
-  "private": false,
-  "publishConfig": { "registry": "https://npm.pkg.github.com", "access": "restricted" },
-  "repository": { "type": "git", "url": "https://github.com/<you>/lumina.git" },
-}
-```
+一次性准备：仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**（不要选 “Deploy from a branch”）。之后每次推 `main` 都会更新 <https://redish101.github.io/lumina/>。
+
+产物里所有资源都是相对路径（`./assets/...`），所以直接放在 `/lumina/` 子路径下即可，不需要配 `base`；构建后补了一个 `.nojekyll`，避免 Pages 的 Jekyll 处理忽略特殊文件。
+
+## 发布
+
+包名 `@redish101/lumina`，发布到**官方 npm registry**。发布由 tag 触发，见 [.github/workflows/release.yml](.github/workflows/release.yml)：
 
 ```bash
-pnpm build
-pnpm publish --no-git-checks     # CI 里用 NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+pnpm version patch        # 或 minor / major，同时打 vX.Y.Z tag
+git push --follow-tags    # 推送 tag → CI 自动 check / build / publish / 创建 GitHub Release
 ```
 
-使用方的 `.npmrc`：
+工作流会：
 
-```ini
-@your-name:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-```
+1. 校验 `GITHUB_REF_NAME`（去掉 `v`）与 `package.json` 的 `version` 一致，不一致直接失败
+2. 跑 `pnpm check` 与 `pnpm build`，确认 `dist/index.js`、`dist/index.d.ts`、两个 CSS 都在
+3. `pnpm publish --no-git-checks --access public --registry https://registry.npmjs.org`
+4. 用 `generate_release_notes` 建一个 GitHub Release
 
-Vercel 上把 `NPM_TOKEN`（只读 `read:packages` 权限）加到 Production 与 Preview 两个环境。
+一次性准备：
+
+- 在 npm 生成 **Granular Access Token**（只读包名 `@redish101/lumina`、给 Read and write 权限，勾上 “bypass 2FA”），存成仓库 secret `NPM_TOKEN`
+- 仓库需要能推到 `https://github.com/redish101/lumina`（`repository` 字段要与实际仓库一致，否则安装页脚的链接会 404）
+
+两个注意点：
+
+- 仓库里的 `.npmrc` 指向 npmmirror 只是为了本地安装快，`publishConfig.registry` 与工作流里的 `--registry` 会强制走官方源，不会被它带偏
+- 想要 npm 的 provenance 徽章，改成公开仓库后在发布步骤加 `--provenance`，并给 workflow 加 `id-token: write` 权限
 
 ## 关于 pnpm 的两点说明
 
