@@ -1,0 +1,52 @@
+/**
+ * 设计令牌（Design Tokens）。
+ * 组件样式只引用这些变量；主题切换通过覆盖 [data-theme] 下的变量实现。
+ */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --lumina-color-primary: #4f6bff;
+  --lumina-color-neutral: #4b5563;
+  --lumina-color-danger: #dc2626;
+  --lumina-color-on-primary: #ffffff;
+  --lumina-color-text: #111827;
+  --lumina-color-text-muted: #6b7280;
+  --lumina-color-bg: #ffffff;
+  --lumina-color-surface: #f5f6f8;
+  --lumina-color-surface-hover: rgb(0 0 0 / 6%);
+  --lumina-color-border: #d1d5db;
+  --lumina-color-focus-ring: #4f6bff;
+
+  --lumina-radius-sm: 4px;
+  --lumina-radius-md: 6px;
+  --lumina-radius-lg: 10px;
+
+  --lumina-space-1: 0.25rem;
+  --lumina-space-2: 0.5rem;
+  --lumina-space-3: 0.75rem;
+  --lumina-space-4: 1rem;
+  --lumina-space-5: 1.25rem;
+  --lumina-space-6: 1.5rem;
+
+  --lumina-font-size-sm: 0.875rem;
+  --lumina-font-size-md: 1rem;
+  --lumina-font-size-lg: 1.125rem;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --lumina-color-primary: #7c8cff;
+  --lumina-color-neutral: #9ca3af;
+  --lumina-color-danger: #f87171;
+  --lumina-color-on-primary: #0b1020;
+  --lumina-color-text: #f3f4f6;
+  --lumina-color-text-muted: #9ca3af;
+  --lumina-color-bg: #111827;
+  --lumina-color-surface: #1f2937;
+  --lumina-color-surface-hover: rgb(255 255 255 / 8%);
+  --lumina-color-border: #374151;
+  --lumina-color-focus-ring: #93a0ff;
+}

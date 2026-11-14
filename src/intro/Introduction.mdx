@@ -1,0 +1,65 @@
+import { Meta, Title, Subtitle } from '@storybook/addon-docs/blocks';
+
+{/* 纯文档页：没有关联的 CSF 文件，所以不能用 <Description of={...} />，说明文字直接写成 MDX 正文即可。 */}
+
+<Meta title="Introduction" />
+
+<Title>Lumina</Title>
+
+<Subtitle>个人使用的 React 组件库</Subtitle>
+
+基于 **React + TypeScript + Vite** 的组件库，使用 **CSS Modules** 编写样式，并通过 **Storybook** 作为组件文档与开发环境。
+
+## 技术栈
+
+- **构建**：Vite（library mode，输出 ESM + CJS + 类型声明）
+- **样式**：CSS Modules + 设计令牌（CSS 变量）
+- **类型**：TypeScript（严格模式，`vite-plugin-dts` 生成 `.d.ts`）
+- **文档**：Storybook（`@storybook/addon-docs` 自动生成 Docs 页）
+- **包管理**：pnpm
+
+## 目录结构
+
+```text
+lumina/
+├── .storybook/            # Storybook 配置（main.ts / preview.ts）
+├── src/
+│   ├── components/        # 组件，一个组件一个目录
+│   │   └── Button/
+│   │       ├── Button.tsx
+│   │       ├── Button.module.css
+│   │       ├── Button.stories.tsx
+│   │       └── index.ts
+│   ├── styles/            # 设计令牌、全局样式
+│   │   ├── tokens.css
+│   │   ├── global.css
+│   │   └── index.css
+│   ├── intro/             # 文档页（.mdx）
+│   └── index.ts           # 公共 API 入口
+├── types/                 # 环境类型声明（CSS Modules 等）
+├── vite.config.ts
+├── tsconfig.json          # 开发/编辑器用（noEmit）
+└── tsconfig.build.json    # 构建类型声明用
+```
+
+## 常用命令
+
+```bash
+pnpm dev            # 启动 Storybook（端口 6006）
+pnpm docs:build && pnpm docs:preview   # 静态构建并本地预览文档
+pnpm build          # 构建组件库（tsc 类型检查 + vite 打包）
+pnpm typecheck      # 仅做类型检查
+pnpm lint           # ESLint 检查
+```
+
+## 新增一个组件
+
+1. 新建 `src/components/<Name>/` 目录，包含 `<Name>.tsx`、`<Name>.module.css`、`<Name>.stories.tsx`、`index.ts`
+2. 样式只引用 `src/styles/tokens.css` 中的 CSS 变量
+3. 在 `src/index.ts` 中导出组件与其 Props 类型
+4. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
+
+## 使用方注意事项
+
+- React / React DOM 作为 `peerDependencies`，构建时已外部化，不会打进产物
+- 样式不会自动注入，需要在入口处手动引入：`import 'lumina/style.css'`（`pnpm build` 后生成 `dist/style.css`）

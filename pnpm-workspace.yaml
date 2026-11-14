@@ -1,0 +1,13 @@
+packages:
+  - '.'
+
+# pnpm 12 起用 allowBuilds 显式允许依赖执行构建脚本（esbuild 需要下载平台二进制）
+allowBuilds:
+  esbuild: true
+
+# 以下版本发布于 pnpm 的 minimumReleaseAge 阈值（1 天）之内，安装时需放行；
+# 稍后用 `pnpm approve-builds` / `pnpm clean --lockfile` 可移除。
+minimumReleaseAgeExclude:
+  - '@eslint/config-array@0.23.6'
+  - '@eslint/js@10.0.1'
+  - eslint@10.15.0
