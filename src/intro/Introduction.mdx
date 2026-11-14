@@ -8,16 +8,16 @@ import { Meta, Title, Subtitle } from '@storybook/addon-docs/blocks';
 
 <Subtitle>个人使用的 React 组件库</Subtitle>
 
-基于 **React + TypeScript** 的组件库，使用 **CSS Modules** 编写样式，通过 **Storybook** 编写文档。源码不打包，交给使用方（Next.js）编译。
+基于 **React + TypeScript** 的组件库，使用 **CSS Modules** 编写样式，用 **Vite** 的库模式构建，通过 **Storybook** 编写文档。
 
 ## 技术栈
 
 | 模块   | 方案                                                      |
 | ------ | --------------------------------------------------------- |
-| 分发   | 直接发布源码，无构建产物（`exports` 指向 `src/index.ts`） |
-| 编译   | 使用方负责：Next.js（App Router）转译 TSX 与 CSS Modules  |
-| 样式   | CSS Modules + 设计令牌（CSS 变量）                        |
-| 类型   | TypeScript（严格模式），类型随源码一起提供                |
+| 构建   | Vite 库模式：ESM 按模块分包 + 每包自带 CSS 导入 + `.d.ts` |
+| 分发   | 编译产物 `dist/`，使用方无需再转译，装完即用              |
+| 样式   | CSS Modules + 设计令牌（CSS 变量）；样式随组件 tree-shake |
+| 类型   | TypeScript（严格模式），声明文件按源码结构输出            |
 | 文档   | Storybook（`@storybook/addon-docs` 自动生成 Docs 页）     |
 | 包管理 | pnpm                                                      |
 
@@ -54,13 +54,17 @@ lumina/
 │   │   └── index.css      # 样式入口（tokens → primitives → global）
 │   ├── intro/             # 文档页（.mdx）
 │   └── index.ts           # 公共 API 入口
+├── dist/                  # 构建产物（不提交）
 ├── types/                 # 环境类型声明（CSS Modules 等）
-└── tsconfig.json          # 类型检查 / 编辑器用（noEmit）
+├── vite.lib.config.ts     # 库构建配置（Storybook 不吃这份）
+├── tsconfig.json          # 类型检查 / 编辑器用（noEmit）
+└── tsconfig.build.json    # 生成类型声明用
 ```
 
 ## 常用命令
 
 ```bash
+pnpm build          # 构建组件库到 dist/（ESM + CSS + 类型声明）
 pnpm dev            # 启动 Storybook（端口 6006）
 pnpm docs:build     # 静态构建文档
 pnpm check          # typecheck + lint + format:check
@@ -77,11 +81,18 @@ pnpm lint           # ESLint 检查
 5. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
 6. 用到 hooks 或事件处理的组件，文件第一行写 `'use client'`
 
-## 在 Next.js 里使用
+## 在应用里使用
 
-要求 **App Router**（Pages Router 下依赖包中的 CSS Modules 会被拒绝）。库本身不做任何编译，所以使用方要让 Next.js 也编译它：
+```tsx
+import { Button } from 'lumina';
 
-- **pnpm workspace**（推荐）：Turbopack 自动转译，无需配置
-- **装成正式依赖**（`pnpm pack` 后安装 / 发布到 registry）：在 `next.config.ts` 里加 `transpilePackages: ['lumina']`
+<Button variant="primary">你好</Button>;
+```
 
-样式需要在 `app/layout.tsx` 引入一次：`import 'lumina/styles.css'`（只要令牌不要 reset 的话用 `lumina/tokens.css`）。React 是 `peerDependencies`，不会重复安装。
+- 组件样式与设计令牌由这个 import 自动带出，**不需要**单独的 CSS 入口
+- 产物已编译，**不需要** `transpilePackages`
+- 未 import 的组件不会进入产物（`preserveModules` + 每包独立 CSS）
+- 想要库自带的重置再额外 `import 'lumina/reset.css'`；只引令牌用 `lumina/tokens.css`
+- React 是 `peerDependencies`，不会重复安装；包本身没有运行时依赖
+
+Next.js 要求 **App Router**：Pages Router 不允许依赖包内出现 CSS Modules。

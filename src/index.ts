@@ -1,8 +1,11 @@
+'use client';
+
 /**
  * Lumina 公共 API 入口。
  *
- * 本包**不产出构建产物**：`package.json` 的 `exports` 直接指向这个文件，
- * 由使用方（Next.js）在自己的编译流程里处理 TSX 与 CSS Modules。
+ * 构建产物为 `dist/`：ESM 分包（`preserveModules`）+ 每包自带 CSS 导入 +
+ * 类型声明。使用方 `import { Button } from 'lumina'` 即可，未用到的组件连同
+ * 它们的 CSS 都会被 tree-shaking 掉。
  *
  * 新增组件时在这里按字母顺序导出，例如：
  *
@@ -10,9 +13,12 @@
  * export { Button } from './components/button';
  * export type { ButtonProps } from './components/button';
  * ```
- *
- * 样式入口是 `src/styles/index.css`，对外暴露为 `lumina/styles.css`。
  */
+// 设计令牌与派生变量：任何组件都依赖它们，所以由入口统一带出。
+// 全局重置（styles/global.css）不在这里引入，留给使用方决定。
+import './styles/tokens.css';
+import './styles/primitives.css';
+
 export { AnimatedRows } from './components/animate';
 export type { AnimatedRowsProps } from './components/animate';
 

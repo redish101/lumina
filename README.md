@@ -1,14 +1,24 @@
 # Lumina
 
-个人使用的 React 组件库。技术栈：**React 19 + TypeScript + CSS Modules + Storybook**，包管理使用 **pnpm**。
+个人使用的 React 组件库。技术栈：**React 19 + TypeScript + CSS Modules + Vite（库构建）+ Storybook**，包管理使用 **pnpm**。
 
 > 组件：Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys、Pill、Tag、StateDot、TextShimmer、AnimatedRows、Menu、Tooltip、Toast、ImagePreview、ImageLightbox、DraggableImage。每个组件在 Storybook 里都有 Docs 页与若干 story。
 
-## 不打包
+## 构建产物
 
-这个库**没有构建步骤**：`package.json` 的 `exports` 直接指向 `src/index.ts`，源码（`.tsx` + `.module.css`）原样交给使用方编译。因为唯一的使用方是 Next.js，它会负责 SWC 转译、tree-shaking 和 CSS Modules 处理，库这边再打一次包只是重复劳动。
+`pnpm build` 用 Vite 的库模式产出 `dist/`，使用方装的是编译好的 ESM，不再需要 `transpilePackages`：
 
-代价是：只能被「会编译 TS/TSX 的工具」消费（Next.js / Vite / webpack + babel），不能直接被 Node `require`，也不能靠 `<script>` 在浏览器里直接用。
+- **按模块分包**：`rollupOptions.output.preserveModules` 保留 `src/` 的模块粒度，`import { Button } from 'lumina'` 只会把 Button 及其依赖打进产物
+- **样式随组件走**：`cssCodeSplit: true` + `vite-plugin-lib-inject-css`，每个 chunk 顶部自动 `import './xxx.css'`，用到哪个组件才加载哪份样式
+- **类型**：`vite-plugin-dts` 按源码结构输出 `dist/**/*.d.ts`
+- **设计令牌**：入口 `src/index.ts` 引入 `styles/tokens.css` 与 `styles/primitives.css`，所以任意组件生效时令牌一定在场（约 33 kB，不会被 tree-shake）
+- **全局重置**不自动注入，需要时 `import 'lumina/reset.css'`
+
+三个实现细节值得记住，改配置时别踩回去：
+
+1. Vite 的 lib 模式默认 `cssCodeSplit: false`（所有样式合并成一个文件），必须显式打开
+2. 产物 CSS 是从 `*.module.css` 编译来的普通 CSS，构建时把 `.module` 后缀去掉重命名，否则使用方的 bundler 会再当 CSS Module 编译一遍
+3. `package.json` 的 `sideEffects` 必须同时包含 `./dist/index.js` 和 `**/*.css`：前者保证入口里的令牌导入不被整块删掉，后者保证组件 CSS 被视为副作用
 
 ## 快速开始
 
@@ -18,12 +28,14 @@ pnpm install
 
 pnpm dev           # 启动 Storybook 文档（http://localhost:6006）
 pnpm check         # 类型 + lint + 格式，一把梭
+pnpm build         # 产出 dist/
 ```
 
 ## 常用脚本
 
 | 命令                                | 说明                                                            |
 | ----------------------------------- | --------------------------------------------------------------- |
+| `pnpm build`                        | 构建组件库到 `dist/`（ESM + CSS + 类型声明）                    |
 | `pnpm dev` / `pnpm docs`            | 启动 Storybook 开发服务器（端口 6006）                          |
 | `pnpm docs:build`                   | 静态构建文档到 `storybook-static/`                              |
 | `pnpm docs:preview`                 | 本地预览构建好的文档                                            |
@@ -41,7 +53,7 @@ lumina/
 │   ├── preview.ts           # 全局样式、主题工具栏、全局 parameters
 │   └── decorators.tsx       # 主题切换：往 body 写 data-lumina-dark-theme
 ├── .vscode/                 # 推荐的编辑器配置
-├── .github/workflows/ci.yml # typecheck / lint / format / docs:build
+├── .github/workflows/ci.yml # typecheck / lint / format / build / docs:build
 ├── src/
 │   ├── components/          # 组件，一个组件一个目录（文件名 kebab-case）
 │   │   ├── <name>/
@@ -56,11 +68,14 @@ lumina/
 │   ├── styles/
 │   │   ├── tokens.css               # 设计令牌（亮/暗主题变量）
 │   │   ├── primitives.css           # 组件需要、令牌文件里没有的基础变量
-│   │   ├── global.css               # 重置与基础排版
-│   │   └── index.css                # 样式入口（tokens → primitives → global）
-│   └── index.ts                     # 组件库公共 API 入口
+│   │   ├── global.css               # 重置与基础排版（对外是 lumina/reset.css）
+│   │   └── index.css                # Storybook 用的样式入口（tokens → primitives → global）
+│   └── index.ts                     # 公共 API 入口（含 `'use client'` 与令牌导入）
+├── dist/                    # 构建产物（不提交）
 ├── types/css-modules.d.ts   # CSS Modules 类型声明
+├── vite.lib.config.ts       # 库构建配置（Storybook 不吃这份）
 ├── tsconfig.json            # 类型检查 / 编辑器用（noEmit）
+├── tsconfig.build.json      # 生成类型声明用
 ├── eslint.config.js
 ├── .prettierrc.json
 └── .npmrc                   # registry（npmmirror）
@@ -72,50 +87,58 @@ lumina/
 2. 样式只引用 `src/styles` 里的 CSS 变量：优先 `tokens.css`（例如 `var(--lumina-alias-label-primary)`），缺的基础变量补到 `primitives.css`
 3. 在 `src/index.ts` 中导出组件与 Props 类型
 4. 在 stories 中加上 `tags: ['autodocs']`（或在 `meta` 中设置），Storybook 会自动生成 Docs 页与 props 表格
-5. **用了 hooks 或事件处理的组件，文件第一行写 `'use client'`**——源码会被 Next.js 直接编译，没有这一行会被当成 RSC 处理
+5. **用了 hooks 或事件处理的组件，文件第一行写 `'use client'`**——构建不会替你补，缺了它 Next.js 会当成 RSC 处理
+6. 跑一次 `pnpm build`，确认新组件的 CSS 与 `.d.ts` 出现在 `dist/` 里
 
-## 在 Next.js 中使用
-
-要求 **App Router**。Pages Router 下，依赖包里的 CSS Modules 会被 Next.js 直接拒绝（[css-modules-npm](https://nextjs.org/docs/messages/css-modules-npm)）；App Router 没有这个限制。
-
-**方式 A：同一个 pnpm workspace（推荐，零配置）**
-
-把 `lumina` 目录放进应用所在 workspace，然后 `"lumina": "workspace:*"`。Turbopack 会自动转译 workspace 内的包，不需要 `transpilePackages`：
-
-```yaml
-# 使用方项目的 pnpm-workspace.yaml
-packages:
-  - 'app'
-  - 'lumina'
-```
-
-**方式 B：装成正式依赖**
-
-打包后安装（或发布到 registry），然后在 `next.config.ts` 里显式允许 Next.js 编译它：
+## 在应用里使用
 
 ```bash
-pnpm pack                       # 在 lumina 里生成 lumina-0.0.0.tgz
-pnpm add ./lumina-0.0.0.tgz     # 在应用里安装
+pnpm add lumina          # 或从私有 registry 安装，见下一节
 ```
-
-```js
-// next.config.ts
-const nextConfig = {
-  transpilePackages: ['lumina'],
-};
-```
-
-> 别用 `pnpm add ../lumina` 直接链一个裸文件夹：pnpm 只会建符号链接、不安装该目录自己的依赖，`clsx` 这类运行时依赖会解析失败；Turbopack 还解析不到工作区之外的符号链接（webpack 可以，但依赖问题照旧）。
-
-上面两条路径都用 Next.js 16.4.6 + Turbopack 实测过：类型检查、CSS Modules、SSR 产物都正常。
-
-然后在 `app/layout.tsx` 里引入一次全局样式：
 
 ```tsx
-import 'lumina/styles.css';
+// app/layout.tsx
+import 'lumina/reset.css'; // 可选：需要库自带的重置时
+import { Button } from 'lumina';
+
+export default function Page() {
+  return <Button variant="primary">你好</Button>;
+}
 ```
 
-设计令牌（`--lumina-*` 变量）随 `styles.css` 一起进来；如果只想引令牌、不要 reset，用 `import 'lumina/tokens.css'`。
+- 组件样式（CSS Modules）和设计令牌由 `import { … } from 'lumina'` 自动带出，不需要额外的 CSS 入口
+- **不需要** `transpilePackages`：产物已经是编译好的 JS + CSS
+- 只引令牌、不要 reset：`import 'lumina/tokens.css'`
+- 本包是纯 ESM，Node 侧 `require('lumina')` 不可用（`import` 正常）
+
+Next.js 要求 **App Router**：Pages Router 不允许依赖包内出现 CSS Modules，构建产物里的 CSS 是普通 `.css` 文件，也不建议让 Pages Router 处理。
+
+## 发布到私有 registry
+
+`private: true` 只在本地开发时保留，发布前改成 `false` 并换成带 scope 的包名（GitHub Packages 要求 scope 等于账号名）：
+
+```jsonc
+{
+  "name": "@your-name/lumina",
+  "private": false,
+  "publishConfig": { "registry": "https://npm.pkg.github.com", "access": "restricted" },
+  "repository": { "type": "git", "url": "https://github.com/<you>/lumina.git" },
+}
+```
+
+```bash
+pnpm build
+pnpm publish --no-git-checks     # CI 里用 NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+```
+
+使用方的 `.npmrc`：
+
+```ini
+@your-name:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+```
+
+Vercel 上把 `NPM_TOKEN`（只读 `read:packages` 权限）加到 Production 与 Preview 两个环境。
 
 ## 关于 pnpm 的两点说明
 

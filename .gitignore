@@ -3,8 +3,10 @@ node_modules
 .pnpm-store
 
 # build output
+dist
 storybook-static
 coverage
+*.tgz
 
 # logs
 *.log
