@@ -48,10 +48,9 @@ lumina/
 │   │   └── segmented/     # 同目录下多个相关组件（Control + Tabs）
 │   ├── icons/             # 内联 SVG 图标（组件依赖的最小集合）
 │   ├── styles/
-│   │   ├── tokens.css     # 设计令牌（亮 / 暗）
-│   │   ├── primitives.css # 组件需要、令牌文件里没有的基础变量
+│   │   ├── tokens.css     # 设计令牌（亮 / 暗、elevation）
 │   │   ├── global.css     # 全局重置
-│   │   └── index.css      # 样式入口（tokens → primitives → global）
+│   │   └── index.css      # 样式入口（tokens → global）
 │   ├── intro/             # 文档页（.mdx）
 │   └── index.ts           # 公共 API 入口
 ├── dist/                  # 构建产物（不提交）
@@ -76,10 +75,10 @@ pnpm lint           # ESLint 检查
 
 1. 新建 `src/components/<name>/` 目录，包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`（目录与文件名都用 kebab-case）
 2. 组件从 `forwardRef` 导出，props 抽成导出的 `<Name>Props` 接口，用 `clsx` 拼类名
-3. 样式只引用 `src/styles` 里的 CSS 变量：优先用 `tokens.css`；缺的基础变量补到 `primitives.css`
+3. 样式只引用 `src/styles/tokens.css` 里的 CSS 变量；确实缺的补进 `tokens.css` 的 `:root` 与暗色块
 4. 在目录的 `index.tsx` 与 `src/index.ts` 中导出组件与其 Props 类型
 5. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
-6. 用到 hooks 或事件处理的组件，文件第一行写 `'use client'`
+6. 用到 hooks / `forwardRef` / 事件处理才在文件第一行写 `'use client'`；纯展示组件不要写，这样能在 Server Component 里直接渲染、不下发 JS（`pnpm check:use-client` 会校验）
 
 ## 在应用里使用
 
@@ -92,6 +91,7 @@ import { Button } from 'lumina';
 - 组件样式与设计令牌由这个 import 自动带出，**不需要**单独的 CSS 入口
 - 产物已编译，**不需要** `transpilePackages`
 - 未 import 的组件不会进入产物（`preserveModules` + 每包独立 CSS）
+- 入口不带 `'use client'`：Tag、StateDot、ShortcutKeys 这类纯展示组件在 Server Component 里直接渲染，不进客户端包
 - 想要库自带的重置再额外 `import 'lumina/reset.css'`；只引令牌用 `lumina/tokens.css`
 - React 是 `peerDependencies`，不会重复安装；包本身没有运行时依赖
 

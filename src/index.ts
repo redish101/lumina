@@ -1,7 +1,9 @@
-'use client';
-
 /**
  * Lumina 公共 API 入口。
+ *
+ * 这里**故意不写** `'use client'`：指令写在每个组件文件自己身上，纯展示组件
+ * （Tag / StateDot / ShortcutKeys）就没有指令，使用方在 Server Component 里
+ * 直接渲染它们时不会下发任何 JS；交互组件各自声明，自动成为客户端边界。
  *
  * 构建产物为 `dist/`：ESM 分包（`preserveModules`）+ 每包自带 CSS 导入 +
  * 类型声明。使用方 `import { Button } from 'lumina'` 即可，未用到的组件连同
@@ -17,7 +19,6 @@
 // 设计令牌与派生变量：任何组件都依赖它们，所以由入口统一带出。
 // 全局重置（styles/global.css）不在这里引入，留给使用方决定。
 import './styles/tokens.css';
-import './styles/primitives.css';
 
 export { AnimatedRows } from './components/animate';
 export type { AnimatedRowsProps } from './components/animate';

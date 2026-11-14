@@ -1,5 +1,3 @@
-'use client';
-
 import clsx from 'clsx';
 import css from './state-dot.module.css';
 import { IconCheckOutline } from '../../icons';

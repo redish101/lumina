@@ -1,5 +1,3 @@
-'use client';
-
 /** 共享的快捷键键帽；生效的平台呈现由调用方提供。 */
 import clsx from 'clsx';
 import css from './shortcut-keys.module.css';

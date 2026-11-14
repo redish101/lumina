@@ -18,7 +18,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.config.{js,ts}', '.storybook/**/*.{ts,tsx}'],
+    files: ['*.config.{js,ts}', '.storybook/**/*.{ts,tsx}', 'scripts/**/*.{js,mjs}'],
     languageOptions: {
       globals: { ...globals.node },
     },

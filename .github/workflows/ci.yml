@@ -23,5 +23,6 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm format:check
+      - run: pnpm check:use-client
       - run: pnpm build
       - run: pnpm docs:build

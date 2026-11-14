@@ -26,12 +26,12 @@
     },
     "./reset.css": "./dist/styles/global.css",
     "./tokens.css": "./dist/styles/tokens.css",
-    "./primitives.css": "./dist/styles/primitives.css",
     "./package.json": "./package.json"
   },
   "scripts": {
     "dev": "storybook dev -p 6006 --no-open",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm check:use-client",
+    "check:use-client": "node scripts/check-use-client.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",

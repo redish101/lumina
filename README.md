@@ -11,7 +11,7 @@
 - **按模块分包**：`rollupOptions.output.preserveModules` 保留 `src/` 的模块粒度，`import { Button } from 'lumina'` 只会把 Button 及其依赖打进产物
 - **样式随组件走**：`cssCodeSplit: true` + `vite-plugin-lib-inject-css`，每个 chunk 顶部自动 `import './xxx.css'`，用到哪个组件才加载哪份样式
 - **类型**：`vite-plugin-dts` 按源码结构输出 `dist/**/*.d.ts`
-- **设计令牌**：入口 `src/index.ts` 引入 `styles/tokens.css` 与 `styles/primitives.css`，所以任意组件生效时令牌一定在场（约 33 kB，不会被 tree-shake）
+- **设计令牌**：入口 `src/index.ts` 引入 `styles/tokens.css`，所以任意组件生效时令牌一定在场（约 34 kB，不会被 tree-shake）
 - **全局重置**不自动注入，需要时 `import 'lumina/reset.css'`
 
 三个实现细节值得记住，改配置时别踩回去：
@@ -19,6 +19,18 @@
 1. Vite 的 lib 模式默认 `cssCodeSplit: false`（所有样式合并成一个文件），必须显式打开
 2. 产物 CSS 是从 `*.module.css` 编译来的普通 CSS，构建时把 `.module` 后缀去掉重命名，否则使用方的 bundler 会再当 CSS Module 编译一遍
 3. `package.json` 的 `sideEffects` 必须同时包含 `./dist/index.js` 和 `**/*.css`：前者保证入口里的令牌导入不被整块删掉，后者保证组件 CSS 被视为副作用
+
+## 客户端边界
+
+入口 `src/index.ts` **没有** `'use client'`：指令写在需要的组件文件自己身上，谁交互谁负责。
+
+| 类型       | 例子                        | 指令 | 在 Server Component 里直接用 |
+| ---------- | --------------------------- | ---- | ---------------------------- |
+| 纯展示     | Tag、StateDot、ShortcutKeys | 无   | 可以，**不下发任何 JS**      |
+| 交互       | Button、Input、Menu、Toast… | 有   | 可以，自动成为客户端边界     |
+| 指令仓库级 | 入口 barrel                 | 无   | 导入本身不制造边界           |
+
+漏写指令的症状是使用方 SSR 时 `Cannot read properties of null (reading 'useContext')`。`pnpm check:use-client` 会扫描 `src/**/*.tsx`：用了 hooks / `forwardRef` / 事件处理的必须带指令，没用到的则会被提示去掉（让它留在服务端）。
 
 ## 快速开始
 
@@ -33,16 +45,17 @@ pnpm build         # 产出 dist/
 
 ## 常用脚本
 
-| 命令                                | 说明                                                            |
-| ----------------------------------- | --------------------------------------------------------------- |
-| `pnpm build`                        | 构建组件库到 `dist/`（ESM + CSS + 类型声明）                    |
-| `pnpm dev` / `pnpm docs`            | 启动 Storybook 开发服务器（端口 6006）                          |
-| `pnpm docs:build`                   | 静态构建文档到 `storybook-static/`                              |
-| `pnpm docs:preview`                 | 本地预览构建好的文档                                            |
-| `pnpm check`                        | 依次执行 `typecheck` / `lint` / `format:check`                  |
-| `pnpm typecheck`                    | 仅做类型检查（含 stories 与 Storybook 配置）                    |
-| `pnpm lint`                         | ESLint（flat config，含 typescript-eslint 与 react-hooks 规则） |
-| `pnpm format` / `pnpm format:check` | Prettier 格式化 / 检查                                          |
+| 命令                                | 说明                                                                |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `pnpm build`                        | 构建组件库到 `dist/`（ESM + CSS + 类型声明）                        |
+| `pnpm dev` / `pnpm docs`            | 启动 Storybook 开发服务器（端口 6006）                              |
+| `pnpm docs:build`                   | 静态构建文档到 `storybook-static/`                                  |
+| `pnpm docs:preview`                 | 本地预览构建好的文档                                                |
+| `pnpm check`                        | 依次执行 `typecheck` / `lint` / `format:check` / `check:use-client` |
+| `pnpm typecheck`                    | 仅做类型检查（含 stories 与 Storybook 配置）                        |
+| `pnpm lint`                         | ESLint（flat config，含 typescript-eslint 与 react-hooks 规则）     |
+| `pnpm check:use-client`             | 校验 `'use client'` 指令位置                                        |
+| `pnpm format` / `pnpm format:check` | Prettier 格式化 / 检查                                              |
 
 ## 目录结构
 
@@ -63,15 +76,15 @@ lumina/
 │   │   │   └── index.tsx           # 组件出口
 │   │   ├── menu/                   # 多文件组件：组件 + hook + 工具函数同目录
 │   │   └── segmented/              # 同目录多个相关组件（Control + Tabs）
-│   ├── icons/                       # 内联 SVG 图标（组件依赖的最小集合）
+│   ├── icons/                       # 内联 SVG 图标（无指令，可在服务端渲染）
 │   ├── intro/Introduction.mdx       # 文档首页
 │   ├── styles/
-│   │   ├── tokens.css               # 设计令牌（亮/暗主题变量）
-│   │   ├── primitives.css           # 组件需要、令牌文件里没有的基础变量
+│   │   ├── tokens.css               # 设计令牌（亮/暗主题变量、elevation）
 │   │   ├── global.css               # 重置与基础排版（对外是 lumina/reset.css）
-│   │   └── index.css                # Storybook 用的样式入口（tokens → primitives → global）
-│   └── index.ts                     # 公共 API 入口（含 `'use client'` 与令牌导入）
+│   │   └── index.css                # Storybook 用的样式入口（tokens → global）
+│   └── index.ts                     # 公共 API 入口（导入令牌，不带 `'use client'`）
 ├── dist/                    # 构建产物（不提交）
+├── scripts/check-use-client.mjs  # 校验 'use client' 指令位置
 ├── types/css-modules.d.ts   # CSS Modules 类型声明
 ├── vite.lib.config.ts       # 库构建配置（Storybook 不吃这份）
 ├── tsconfig.json            # 类型检查 / 编辑器用（noEmit）
@@ -84,11 +97,11 @@ lumina/
 ## 新增组件
 
 1. 新建 `src/components/<name>/`（kebab-case），包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`
-2. 样式只引用 `src/styles` 里的 CSS 变量：优先 `tokens.css`（例如 `var(--lumina-alias-label-primary)`），缺的基础变量补到 `primitives.css`
+2. 样式只引用 `src/styles/tokens.css` 里的 CSS 变量（例如 `var(--lumina-alias-label-primary)`），确实缺的变量补进 `tokens.css` 的 `:root` 与暗色块
 3. 在 `src/index.ts` 中导出组件与 Props 类型
 4. 在 stories 中加上 `tags: ['autodocs']`（或在 `meta` 中设置），Storybook 会自动生成 Docs 页与 props 表格
-5. **用了 hooks 或事件处理的组件，文件第一行写 `'use client'`**——构建不会替你补，缺了它 Next.js 会当成 RSC 处理
-6. 跑一次 `pnpm build`，确认新组件的 CSS 与 `.d.ts` 出现在 `dist/` 里
+5. **用了 hooks / `forwardRef` / 事件处理才写 `'use client'`**：构建不会替你补，缺了它 Next.js 会当成 RSC 处理；反过来纯展示组件不要写，才能留在服务端
+6. 跑 `pnpm check:use-client` 与 `pnpm build`，确认指令位置正确、新组件的 CSS 与 `.d.ts` 出现在 `dist/` 里
 
 ## 在应用里使用
 
@@ -107,6 +120,7 @@ export default function Page() {
 ```
 
 - 组件样式（CSS Modules）和设计令牌由 `import { … } from 'lumina'` 自动带出，不需要额外的 CSS 入口
+- Tag / StateDot / ShortcutKeys 可以在 Server Component 里直接渲染，不下发 JS；交互组件自动成为客户端边界，无需手写 `'use client'`
 - **不需要** `transpilePackages`：产物已经是编译好的 JS + CSS
 - 只引令牌、不要 reset：`import 'lumina/tokens.css'`
 - 本包是纯 ESM，Node 侧 `require('lumina')` 不可用（`import` 正常）
