@@ -150,18 +150,32 @@ git push --follow-tags    # 推送 tag → CI 自动 check / build / publish / �
 
 1. 校验 `GITHUB_REF_NAME`（去掉 `v`）与 `package.json` 的 `version` 一致，不一致直接失败
 2. 跑 `pnpm check` 与 `pnpm build`，确认 `dist/index.js`、`dist/index.d.ts`、两个 CSS 都在
-3. `pnpm publish --no-git-checks --access public --registry https://registry.npmjs.org`
+3. `npm publish --access public --tag <latest|next> --registry https://registry.npmjs.org --provenance`
 4. 用 `generate_release_notes` 建一个 GitHub Release
 
-一次性准备：
+认证走 **Trusted Publishing（OIDC）**，不需要 `NPM_TOKEN`：workflow 只有 `id-token: write` 权限，npm CLI（≥ 11.5.1）检测到 GitHub Actions 的 OIDC 环境后自己换短期凭据，并顺带产出 provenance。
 
-- 在 npm 生成 **Granular Access Token**（只读包名 `@redish101/lumina`、给 Read and write 权限，勾上 “bypass 2FA”），存成仓库 secret `NPM_TOKEN`
-- 仓库需要能推到 `https://github.com/redish101/lumina`（`repository` 字段要与实际仓库一致，否则安装页脚的链接会 404）
+一次性准备（顺序不能反）：
+
+1. **先手动发一次**，让包在 npm 上存在：
+
+   ```bash
+   npm login                                      # npm login 现在给的是 2 小时会话，够用
+   npm publish --access public                    # 走 publishConfig 里的 registry
+   ```
+
+2. 打开 <https://www.npmjs.com/package/@redish101/lumina> → **Settings → Trusted Publisher → Add**，填：
+   - Publisher：GitHub Actions
+   - Organization or user：`redish101`
+   - Repository：`lumina`
+   - Workflow filename：`release.yml`（只填文件名，要带 `.yml`）
+   - Allowed actions：勾上 **Allow npm publish**
+3. 之后打 tag 就全自动，且再也不用换 token。
 
 两个注意点：
 
 - 仓库里的 `.npmrc` 指向 npmmirror 只是为了本地安装快，`publishConfig.registry` 与工作流里的 `--registry` 会强制走官方源，不会被它带偏
-- 想要 npm 的 provenance 徽章，改成公开仓库后在发布步骤加 `--provenance`，并给 workflow 加 `id-token: write` 权限
+- 仓库需要是公开的：npm 的 provenance 与 Trusted Publisher 都要求公开仓库；`repository` 字段要与实际仓库一致，否则 provenance 校验和安装页脚链接都会出问题
 
 ## 关于 pnpm 的两点说明
 

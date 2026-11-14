@@ -1,11 +1,11 @@
 {
   "name": "@redish101/lumina",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A React component library.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/redish101/lumina.git"
+    "url": "git+https://github.com/redish101/lumina.git"
   },
   "homepage": "https://github.com/redish101/lumina#readme",
   "bugs": {
