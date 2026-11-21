@@ -1,0 +1,100 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--lumina-alias-label-primary);
+}
+
+.invalid .legend {
+  color: var(--lumina-alias-state-error-primary);
+}
+
+.options {
+  display: flex;
+  gap: 12px;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 8px;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--lumina-alias-label-primary);
+  cursor: pointer;
+}
+
+.option.disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* 原生 radio 直接作为视觉圆点：勾选时用内阴影在品牌色底上留出一圈背景色，
+ * 中心剩下的实心圆就是自绘的选中点。 */
+.input {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1.5px solid var(--lumina-alias-border-l4);
+  border-radius: 50%;
+  background: var(--lumina-alias-bg-layer-1);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: inherit;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+@media (hover: hover) {
+  .option:hover .input:not(:checked):not(:disabled) {
+    border-color: var(--lumina-alias-label-tertiary);
+  }
+}
+
+.input:checked {
+  border-color: var(--lumina-alias-state-business-primary);
+  background: var(--lumina-alias-state-business-primary);
+  box-shadow: inset 0 0 0 3px var(--lumina-alias-bg-layer-1);
+}
+
+.input:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid
+    var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
+  outline-offset: 2px;
+}
+
+.input:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition: none;
+  }
+}

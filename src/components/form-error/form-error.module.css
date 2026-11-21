@@ -1,0 +1,12 @@
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 0.5px solid color-mix(in srgb, var(--lumina-alias-state-error-primary) 32%, transparent);
+  border-radius: var(--lumina-radius-sm);
+  background: var(--lumina-alias-interactive-bg-hover-danger);
+  color: var(--lumina-alias-state-error-primary);
+  font-size: 13px;
+  line-height: 20px;
+}

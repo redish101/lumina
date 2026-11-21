@@ -1,0 +1,280 @@
+/**
+ * Lumina 重置样式。
+ *
+ * 两条硬约束：
+ * 1. **零特异性**：所有选择器都包在 `:where()` 里，特异性恒为 0；
+ * 2. **独立层级**：整份样式放在 `@layer lumina.reset` 里，未分层（unlayered）
+ *    的样式天然优先于它。
+ *
+ * 因此使用方不需要 `!important`、不需要算选择器权重就能覆盖任何一条；
+ * 库内组件的 CSS Module 同样未分层，也会自动赢过这里。
+ *
+ * 覆盖范围针对移动端（Android Chrome / iOS Safari）与桌面端的浏览器默认样式：
+ * 触摸高亮、字体自动放大、表单控件的 appearance 与内阴影、标题与列表的
+ * 默认外边距、图片的基线空隙、焦点环、对话框与 `[hidden]` 的默认表现等。
+ */
+
+@layer lumina.reset {
+  /* ---------- 盒模型 ---------- */
+
+  :where(*, *::before, *::after) {
+    box-sizing: border-box;
+  }
+
+  /* ---------- 文档 ---------- */
+
+  :where(html) {
+    /* 横屏时 iOS 会放大字号；Android 的 font boosting 同理 */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* 移动端点击时不再闪一层灰 */
+    -webkit-tap-highlight-color: transparent;
+    tab-size: 4;
+    text-underline-offset: 0.15em;
+  }
+
+  :where(body) {
+    min-height: 100dvh;
+    font-family: var(--lumina-font-family, system-ui, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--lumina-alias-label-primary, #1a1a1a);
+    background: var(--lumina-alias-bg-layer-1, #fff);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- 排版 ---------- */
+
+  :where(h1, h2, h3, h4, h5, h6) {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  :where(h1) {
+    font-size: 2em;
+    font-weight: 600;
+  }
+
+  :where(p, blockquote, figure, figcaption, dl, dd, pre, address) {
+    margin: 0;
+  }
+
+  :where(ul, ol) {
+    list-style: none;
+    padding: 0;
+  }
+
+  :where(dd) {
+    margin-inline-start: 0;
+  }
+
+  :where(ol) {
+    counter-reset: none;
+  }
+
+  :where(pre, code, kbd, samp) {
+    font-family: var(--lumina-font-family-code, ui-monospace, SFMono-Regular, monospace);
+    font-size: 1em;
+  }
+
+  :where(pre) {
+    overflow: auto;
+    white-space: pre;
+  }
+
+  :where(a) {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  :where(abbr[title]) {
+    text-decoration: underline dotted;
+    cursor: help;
+  }
+
+  :where(strong, b) {
+    font-weight: 600;
+  }
+
+  :where(small) {
+    font-size: 80%;
+  }
+
+  :where(sub, sup) {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+
+  :where(sub) {
+    bottom: -0.25em;
+  }
+
+  :where(sup) {
+    top: -0.5em;
+  }
+
+  :where(hr) {
+    height: 0;
+    border: 0;
+    border-top: 1px solid var(--lumina-alias-border-l3, #e5e5e5);
+    color: inherit;
+  }
+
+  /* ---------- 替换元素 ---------- */
+
+  :where(img, svg, video, canvas, audio, iframe, embed, object) {
+    display: block;
+    max-width: 100%;
+    vertical-align: middle;
+  }
+
+  :where(img, video) {
+    height: auto;
+  }
+
+  :where(iframe) {
+    border: 0;
+  }
+
+  /* ---------- 表格 ---------- */
+
+  :where(table) {
+    border-collapse: collapse;
+    border-color: inherit;
+    text-indent: 0;
+  }
+
+  /* ---------- 表单 ---------- */
+
+  :where(button, input, select, optgroup, textarea) {
+    margin: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  :where(button) {
+    padding: 0;
+    cursor: pointer;
+    /* Android 上按钮默认带一层渐变与内阴影 */
+    background-image: none;
+    text-transform: none;
+    touch-action: manipulation;
+  }
+
+  :where(button:disabled, input:disabled, select:disabled, textarea:disabled) {
+    cursor: default;
+  }
+
+  :where(textarea) {
+    resize: vertical;
+    /* Firefox 默认会给 textarea 一个内滚动条边缘 */
+    overflow: auto;
+  }
+
+  :where(select) {
+    /* 原生下拉的箭头在去掉 appearance 后消失，需要的地方由组件自己画 */
+    background-image: none;
+    touch-action: manipulation;
+  }
+
+  :where(input) {
+    /* Android 的 autofill 会染黄背景，收掉内阴影 */
+    background-image: none;
+  }
+
+  :where(input[type='search']) {
+    -webkit-appearance: textfield;
+    appearance: textfield;
+  }
+
+  :where(
+    input[type='search']::-webkit-search-decoration,
+    input[type='search']::-webkit-search-cancel-button
+  ) {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  :where(input[type='number']) {
+    -moz-appearance: textfield;
+  }
+
+  :where(
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button
+  ) {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  :where(input[type='file']) {
+    border: 0;
+    background: transparent;
+  }
+
+  :where(fieldset) {
+    border: 0;
+  }
+
+  :where(legend) {
+    padding: 0;
+  }
+
+  :where(label) {
+    cursor: default;
+  }
+
+  :where(::placeholder) {
+    color: var(--lumina-alias-label-dimmed, #8a8a8a);
+    opacity: 1;
+  }
+
+  /* ---------- 交互细节 ---------- */
+
+  :where([hidden]) {
+    display: none !important;
+  }
+
+  :where(dialog) {
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  :where(summary) {
+    cursor: pointer;
+    display: list-item;
+  }
+
+  :where(:focus-visible) {
+    outline: var(--lumina-focus-ring-width, 2px) solid var(--lumina-focus-ring-color, #3b6cff);
+    outline-offset: 2px;
+  }
+
+  :where(::selection) {
+    background: color-mix(in srgb, var(--lumina-alias-brand-primary) 22%, transparent);
+  }
+
+  /* ---------- 无障碍偏好 ---------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(*) {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

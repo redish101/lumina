@@ -1,0 +1,15 @@
+.path {
+  font-family: var(--lumina-font-family-code);
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.directory {
+  color: var(--lumina-alias-label-tertiary);
+}
+
+.name {
+  color: var(--lumina-alias-label-primary);
+}

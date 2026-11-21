@@ -23,12 +23,15 @@ import { Meta, Title, Subtitle } from '@storybook/addon-docs/blocks';
 
 ## 组件
 
-| 分类 | 组件                                                                           |
-| ---- | ------------------------------------------------------------------------------ |
-| 表单 | Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys |
-| 展示 | Pill、Tag、StateDot、TextShimmer、AnimatedRows                                 |
-| 浮层 | Menu、Tooltip、Toast                                                           |
-| 媒体 | ImagePreview、ImageLightbox、DraggableImage                                    |
+| 分类     | 组件                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| 表单     | Button、Input、Textarea、Select、Checkbox、RadioGroup、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys |
+| 表单布局 | Field、FieldGroup、FormError                                                                                 |
+| 布局     | Card、Accordion、Tabs、Sidebar、Empty                                                                        |
+| 浮层     | Dialog、Popover、Menu、Tooltip、Toast                                                                        |
+| 展示     | Tag、Pill、StateDot、TextShimmer、AnimatedRows、PathLabel、CommandText、DisclosureRow、FoldToggle            |
+| 内容     | CodeCard、DiffBlock、TerminalBlock、JsonTree                                                                 |
+| 媒体     | ImagePreview、ImageLightbox、DraggableImage                                                                  |
 
 每个组件的 Docs 页顶部有行为说明，下面是 props 表格（含中文说明与默认值）；story 覆盖了主要变体与边界状态。
 
@@ -43,14 +46,14 @@ lumina/
 │   │   │   ├── button.tsx
 │   │   │   ├── button.module.css
 │   │   │   ├── button.stories.tsx
-│   │   │   └── index.tsx
+│   │   │   └── index.ts
 │   │   ├── menu/          # 多文件组件：组件 + hook + 工具函数同目录
 │   │   └── segmented/     # 同目录下多个相关组件（Control + Tabs）
 │   ├── icons/             # 内联 SVG 图标（组件依赖的最小集合）
 │   ├── styles/
 │   │   ├── tokens.css     # 设计令牌（亮 / 暗、elevation）
-│   │   ├── global.css     # 全局重置
-│   │   └── index.css      # 样式入口（tokens → global）
+│   │   ├── reset.css      # 零特异性重置（按需 import）
+│   │   └── index.css      # 样式入口（tokens → reset）
 │   ├── intro/             # 文档页（.mdx）
 │   └── index.ts           # 公共 API 入口
 ├── dist/                  # 构建产物（不提交）
@@ -66,17 +69,18 @@ lumina/
 pnpm build          # 构建组件库到 dist/（ESM + CSS + 类型声明）
 pnpm dev            # 启动 Storybook（端口 6006）
 pnpm docs:build     # 静态构建文档
-pnpm check          # typecheck + lint + format:check
+pnpm check          # typecheck + lint + format:check + use-client 校验
 pnpm typecheck      # 仅做类型检查
 pnpm lint           # ESLint 检查
+pnpm clean          # 删除 dist 与 storybook-static
 ```
 
 ## 新增一个组件
 
-1. 新建 `src/components/<name>/` 目录，包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`（目录与文件名都用 kebab-case）
+1. 新建 `src/components/<name>/` 目录，包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.ts`（目录与文件名都用 kebab-case）
 2. 组件从 `forwardRef` 导出，props 抽成导出的 `<Name>Props` 接口，用 `clsx` 拼类名
 3. 样式只引用 `src/styles/tokens.css` 里的 CSS 变量；确实缺的补进 `tokens.css` 的 `:root` 与暗色块
-4. 在目录的 `index.tsx` 与 `src/index.ts` 中导出组件与其 Props 类型
+4. 在目录的 `index.ts` 与 `src/index.ts` 中导出组件与其 Props 类型
 5. Storybook 会自动收录 `src/**/*.stories.@(ts|tsx)`，并为带 `tags: ['autodocs']` 的组件生成文档页
 6. 用到 hooks / `forwardRef` / 事件处理才在文件第一行写 `'use client'`；纯展示组件不要写，这样能在 Server Component 里直接渲染、不下发 JS（`pnpm check:use-client` 会校验）
 

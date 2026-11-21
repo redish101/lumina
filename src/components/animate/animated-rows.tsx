@@ -1,17 +1,18 @@
 'use client';
 
 /** 按 key 追踪行位置的列表容器：列表增删/重排时做位移与淡入淡出。 */
-import { Component, createRef, type AriaRole, type ReactNode } from 'react';
+import { useCallback, useLayoutEffect, useRef, type AriaRole, type ReactNode } from 'react';
 import css from './animated-rows.module.css';
 
 const ROW_FADE_MS = 100;
 const ROW_GLIDE_MS = 200;
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
 /** 列表容器：子节点是带 key 的行，行上要写 `data-row-key`。 */
 export interface AnimatedRowsProps {
   children: ReactNode;
   /** 追加在列表容器上的类名 */
-  className: string;
+  className?: string;
   /** 列表的语义角色 */
   role?: AriaRole;
   /** 列表的无障碍标签 */
@@ -28,6 +29,8 @@ interface RowPosition {
   element: HTMLElement;
   rect: DOMRect;
   opacity: number;
+  /** 退出行克隆到叠加层后要沿用的内联起始内边距 */
+  paddingInlineStart: string;
 }
 
 type Viewport = Pick<DOMRect, 'top' | 'bottom' | 'left' | 'right'>;
@@ -35,7 +38,18 @@ type Viewport = Pick<DOMRect, 'top' | 'bottom' | 'left' | 'right'>;
 interface RowSnapshot {
   viewport: Viewport;
   positions: Map<string, RowPosition>;
-  removed: Map<string, RowPosition>;
+}
+
+interface Exit {
+  element: HTMLElement;
+  animation: Animation;
+}
+
+/** `SnapshotProbe` 在 cleanup 里带回来的「上一次提交」的 props 摘要。 */
+interface ProbeSnapshot {
+  ready: boolean;
+  rowSignature: string;
+  resetKey: string;
 }
 
 function sameRows(previous: AnimatedRowsProps, next: AnimatedRowsProps): boolean {
@@ -43,6 +57,11 @@ function sameRows(previous: AnimatedRowsProps, next: AnimatedRowsProps): boolean
     previous.rowKeys.length === next.rowKeys.length &&
     previous.rowKeys.every((key, index) => key === next.rowKeys[index])
   );
+}
+
+/** 用作 layout effect 的依赖：只有成员或顺序变化时才重新测量。 */
+function rowsSignature(rowKeys: readonly string[]): string {
+  return JSON.stringify(rowKeys);
 }
 
 function visibleViewport(list: HTMLElement): Viewport {
@@ -64,72 +83,152 @@ function intersects(row: DOMRect, viewport: Viewport): boolean {
   );
 }
 
+function readPositions(
+  list: HTMLElement,
+  movements: ReadonlyMap<HTMLElement, Animation>,
+  capturePadding: boolean,
+): Map<string, RowPosition> {
+  const rows = list.querySelectorAll<HTMLElement>('[data-row-key]');
+  const positions = new Map<string, RowPosition>();
+  for (const element of rows) {
+    const animated = movements.has(element);
+    const style = animated || capturePadding ? getComputedStyle(element) : null;
+    positions.set(element.dataset.rowKey as string, {
+      element,
+      rect: element.getBoundingClientRect(),
+      opacity: animated ? Number(style?.opacity) : 1,
+      paddingInlineStart: capturePadding ? (style?.paddingInlineStart ?? '') : '',
+    });
+  }
+  return positions;
+}
+
+function play(
+  element: HTMLElement,
+  keyframes: Keyframe[],
+  duration: number,
+  movements: Map<HTMLElement, Animation>,
+): void {
+  const animation = element.animate(keyframes, { duration, easing: 'ease-out' });
+  movements.set(element, animation);
+  animation.onfinish = () => {
+    movements.delete(element);
+    animation.cancel();
+  };
+}
+
+function cancelMovements(movements: Map<HTMLElement, Animation>): void {
+  for (const animation of movements.values()) {
+    animation.onfinish = null;
+    animation.cancel();
+  }
+  movements.clear();
+}
+
+function removeExit(exits: Map<string, Exit>, key: string): void {
+  const exit = exits.get(key);
+  if (exit === undefined) return;
+  exit.animation.onfinish = null;
+  exit.animation.cancel();
+  exit.element.remove();
+  exits.delete(key);
+}
+
+function clearAnimations(exits: Map<string, Exit>, movements: Map<HTMLElement, Animation>): void {
+  cancelMovements(movements);
+  for (const key of exits.keys()) removeExit(exits, key);
+}
+
+interface SnapshotProbeProps {
+  onMeasure: (previous: ProbeSnapshot) => void;
+  rowSignature: string;
+  ready: boolean;
+  resetKey: string;
+}
+
+/**
+ * 不渲染任何 DOM 的测量探针。
+ *
+ * 它必须渲染在列表容器**之前**：React 在 mutation 阶段按树的顺序执行 layout
+ * effect 的 cleanup，所以探针的 cleanup 会先于后面兄弟节点（列表）的 DOM 变更；
+ * 组件自身的 layout cleanup 则要等它所有后代的 DOM 变更完成后才执行，测不到
+ * 「变更前」的位置。依赖只有行签名、`ready`、`resetKey`：行没有变化时不测量。
+ */
+function SnapshotProbe({ onMeasure, rowSignature, ready, resetKey }: SnapshotProbeProps): null {
+  useLayoutEffect(() => {
+    const previous: ProbeSnapshot = { ready, rowSignature, resetKey };
+    return () => {
+      onMeasure(previous);
+    };
+  }, [onMeasure, rowSignature, ready, resetKey]);
+  return null;
+}
+
 /**
  * 只在行的成员或顺序变化时播动画。
  *
  * 行必须在变化前后同时与列表和窗口相交才会动；首次指针或键盘操作之后才启用动画；
  * 外层需要提供一个定位容器给退出的行做叠加层。
  */
-export class AnimatedRows extends Component<AnimatedRowsProps> {
-  private armed = false;
-  private readonly list = createRef<HTMLDivElement>();
-  private readonly overlay = createRef<HTMLDivElement>();
-  private readonly movements = new Map<HTMLElement, Animation>();
-  private readonly exits = new Map<string, { element: HTMLElement; animation: Animation }>();
+export function AnimatedRows(props: AnimatedRowsProps): ReactNode {
+  const { children, className, role, label } = props;
+  const listRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const armedRef = useRef(false);
+  const movementsRef = useRef<Map<HTMLElement, Animation>>(new Map());
+  const exitsRef = useRef<Map<string, Exit>>(new Map());
+  const snapshotRef = useRef<RowSnapshot | null>(null);
+  const previousPropsRef = useRef<AnimatedRowsProps | null>(null);
 
-  override getSnapshotBeforeUpdate(previous: AnimatedRowsProps): RowSnapshot | null {
-    const list = this.list.current;
+  // 在 DOM 变更前（探针的 cleanup）测量并缓存，等价于 getSnapshotBeforeUpdate。
+  const measure = useCallback((previous: ProbeSnapshot) => {
+    const list = listRef.current;
     if (
-      !this.armed ||
-      sameRows(previous, this.props) ||
-      previous.resetKey !== this.props.resetKey ||
+      !armedRef.current ||
       !previous.ready ||
-      !this.props.ready ||
       list === null ||
       typeof list.animate !== 'function' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.matchMedia(REDUCED_MOTION).matches
     )
-      return null;
+      return;
+    snapshotRef.current = {
+      viewport: visibleViewport(list),
+      positions: readPositions(list, movementsRef.current, true),
+    };
+  }, []);
 
-    const viewport = visibleViewport(list);
-    const positions = this.readPositions();
-    const nextKeys = new Set(this.props.rowKeys);
-    const removed = new Map<string, RowPosition>();
-    for (const [key, row] of positions) {
-      if (nextKeys.has(key) || !intersects(row.rect, viewport)) continue;
-      const clone = row.element.cloneNode(true) as HTMLElement;
-      clone.removeAttribute('data-row-key');
-      clone.inert = true;
-      clone.style.paddingInlineStart = getComputedStyle(row.element).paddingInlineStart;
-      removed.set(key, { ...row, element: clone });
-    }
-    return { viewport, positions, removed };
-  }
+  // 在 DOM 变更后计算并播放动画，等价于 componentDidUpdate。
+  useLayoutEffect(() => {
+    const previousProps = previousPropsRef.current;
+    const snapshot = snapshotRef.current;
+    snapshotRef.current = null;
+    previousPropsRef.current = props;
 
-  override componentDidUpdate(
-    previous: AnimatedRowsProps,
-    _state: unknown,
-    snapshot: RowSnapshot | null,
-  ): void {
-    if (snapshot === null) {
-      if (
-        !sameRows(previous, this.props) ||
-        previous.resetKey !== this.props.resetKey ||
-        previous.ready !== this.props.ready
-      )
-        this.clear();
+    if (previousProps === null) return;
+
+    const list = listRef.current;
+    const overlay = overlayRef.current;
+    if (list === null || overlay === null) return;
+
+    const rowsChanged = !sameRows(previousProps, props);
+    const resetChanged = previousProps.resetKey !== props.resetKey;
+    const readyChanged = previousProps.ready !== props.ready;
+
+    // 探针只在上面三个依赖变化时测量；`sameRows` / `resetKey` / `ready` 仍要
+    // 在这里复核，因为变更前的 cleanup 拿不到新 props。
+    if (snapshot === null || !rowsChanged || resetChanged || !props.ready) {
+      if (rowsChanged || resetChanged || readyChanged)
+        clearAnimations(exitsRef.current, movementsRef.current);
       return;
     }
 
-    this.cancelMovements();
-    const list = this.list.current as HTMLDivElement;
-    const overlay = this.overlay.current as HTMLDivElement;
+    cancelMovements(movementsRef.current);
     const viewport = visibleViewport(list);
     const origin = overlay.getBoundingClientRect();
-    const positions = this.readPositions();
+    const positions = readPositions(list, movementsRef.current, false);
 
     for (const [key, row] of positions) {
-      this.removeExit(key);
+      removeExit(exitsRef.current, key);
       const previousRow = snapshot.positions.get(key);
       if (
         !intersects(row.rect, viewport) &&
@@ -137,13 +236,13 @@ export class AnimatedRows extends Component<AnimatedRowsProps> {
       )
         continue;
       if (previousRow === undefined) {
-        this.move(row.element, [{ opacity: 0 }, { opacity: 1 }], ROW_FADE_MS);
+        play(row.element, [{ opacity: 0 }, { opacity: 1 }], ROW_FADE_MS, movementsRef.current);
         continue;
       }
       const dx = previousRow.rect.left - row.rect.left;
       const dy = previousRow.rect.top - row.rect.top;
       if (dx === 0 && dy === 0 && previousRow.opacity === 1) continue;
-      this.move(
+      play(
         row.element,
         [
           {
@@ -153,12 +252,18 @@ export class AnimatedRows extends Component<AnimatedRowsProps> {
           { transform: 'translate(0, 0)', opacity: 1 },
         ],
         ROW_GLIDE_MS,
+        movementsRef.current,
       );
     }
 
-    for (const [key, row] of snapshot.removed) {
-      const { element } = row;
-      this.removeExit(key);
+    const nextKeys = new Set(props.rowKeys);
+    for (const [key, row] of snapshot.positions) {
+      if (nextKeys.has(key) || !intersects(row.rect, snapshot.viewport)) continue;
+      removeExit(exitsRef.current, key);
+      const element = row.element.cloneNode(true) as HTMLElement;
+      element.removeAttribute('data-row-key');
+      element.inert = true;
+      element.style.paddingInlineStart = row.paddingInlineStart;
       Object.assign(element.style, {
         position: 'absolute',
         margin: '0',
@@ -175,82 +280,45 @@ export class AnimatedRows extends Component<AnimatedRowsProps> {
         easing: 'ease-out',
         fill: 'forwards',
       });
-      this.exits.set(key, { element, animation });
+      exitsRef.current.set(key, { element, animation });
       animation.onfinish = () => {
-        this.removeExit(key);
+        removeExit(exitsRef.current, key);
       };
     }
-  }
+  });
 
-  override componentWillUnmount(): void {
-    this.clear();
-  }
-
-  private readPositions(): Map<string, RowPosition> {
-    const list = this.list.current as HTMLDivElement;
-    const rows = list.querySelectorAll<HTMLElement>('[data-row-key]');
-    return new Map(
-      Array.from(rows, (element) => [
-        element.dataset.rowKey as string,
-        {
-          element,
-          rect: element.getBoundingClientRect(),
-          opacity: this.movements.has(element) ? Number(getComputedStyle(element).opacity) : 1,
-        },
-      ]),
-    );
-  }
-
-  private move(element: HTMLElement, keyframes: Keyframe[], duration: number): void {
-    const animation = element.animate(keyframes, { duration, easing: 'ease-out' });
-    this.movements.set(element, animation);
-    animation.onfinish = () => {
-      this.movements.delete(element);
-      animation.cancel();
+  // 卸载时取消所有动画并清掉叠加层里的残留克隆。
+  useLayoutEffect(() => {
+    const exits = exitsRef.current;
+    const movements = movementsRef.current;
+    return () => {
+      clearAnimations(exits, movements);
     };
-  }
+  }, []);
 
-  private cancelMovements(): void {
-    for (const animation of this.movements.values()) {
-      animation.onfinish = null;
-      animation.cancel();
-    }
-    this.movements.clear();
-  }
-
-  private removeExit(key: string): void {
-    const exit = this.exits.get(key);
-    if (exit === undefined) return;
-    exit.animation.onfinish = null;
-    exit.animation.cancel();
-    exit.element.remove();
-    this.exits.delete(key);
-  }
-
-  private clear(): void {
-    this.cancelMovements();
-    for (const key of this.exits.keys()) this.removeExit(key);
-  }
-
-  override render(): ReactNode {
-    return (
-      <>
-        <div
-          ref={this.list}
-          className={this.props.className}
-          role={this.props.role}
-          aria-label={this.props.label}
-          onPointerDownCapture={() => {
-            this.armed = true;
-          }}
-          onKeyDownCapture={() => {
-            this.armed = true;
-          }}
-        >
-          {this.props.children}
-        </div>
-        <div ref={this.overlay} className={css.exits} aria-hidden="true" />
-      </>
-    );
-  }
+  return (
+    <>
+      <SnapshotProbe
+        onMeasure={measure}
+        rowSignature={rowsSignature(props.rowKeys)}
+        ready={props.ready}
+        resetKey={props.resetKey}
+      />
+      <div
+        ref={listRef}
+        className={className}
+        role={role}
+        aria-label={label}
+        onPointerDownCapture={() => {
+          armedRef.current = true;
+        }}
+        onKeyDownCapture={() => {
+          armedRef.current = true;
+        }}
+      >
+        {children}
+      </div>
+      <div ref={overlayRef} className={css.exits} aria-hidden="true" />
+    </>
+  );
 }

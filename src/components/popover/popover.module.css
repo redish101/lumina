@@ -1,0 +1,87 @@
+/* 触发器外壳只负责承接 ref 与点击，不改变子元素的排版。 */
+.anchor {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+/* 面板是 fixed 定位的独立浮层；首次测量前用 visibility 藏住，
+ * 脚本量完坐标后会写成 visible，避免在 (0, 0) 闪一下。 */
+.panel {
+  position: fixed;
+  z-index: 900;
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--lumina-alias-border-l3);
+  border-radius: var(--lumina-radius-md);
+  background: var(--lumina-alias-bg-layer-1);
+  box-shadow: var(--lumina-shadow-lv3);
+  color: var(--lumina-alias-label-primary);
+  font-size: 13px;
+  line-height: 20px;
+  transform: scale(0.96);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 120ms var(--lumina-ease-in-out),
+    transform 120ms var(--lumina-ease-in-out);
+}
+
+.panel[data-state='open'] {
+  transform: scale(1);
+  opacity: 1;
+  animation: popover-in 120ms var(--lumina-ease-in-out);
+}
+
+/* 进场用 keyframes：面板是插入时就已经是 open 状态，没有可过渡的起始值；
+ * 退场则沿用上面的 opacity/transform transition。 */
+@keyframes popover-in {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.panel[data-state='closed'] {
+  pointer-events: none;
+}
+
+.panel[data-side='bottom'] {
+  transform-origin: top center;
+}
+
+.panel[data-side='top'] {
+  transform-origin: bottom center;
+}
+
+.panel[data-side='left'] {
+  transform-origin: right center;
+}
+
+.panel[data-side='right'] {
+  transform-origin: left center;
+}
+
+.panel:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid
+    var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transform: none;
+    transition: none;
+  }
+
+  .panel[data-state='open'] {
+    animation: none;
+  }
+}

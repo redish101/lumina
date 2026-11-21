@@ -1,0 +1,111 @@
+/* 折叠面板：整组共用一个外框，项与项之间用一条细线分隔。
+ * 展开动画在 .panel 上做 grid-template-rows 0fr → 1fr，
+ * 内层 .panelInner 负责 overflow: hidden 与内边距，无需测量高度。 */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--lumina-alias-border-l2);
+  border-radius: var(--lumina-radius-lg);
+  background: var(--lumina-alias-bg-layer-1);
+}
+
+.item + .item {
+  border-top: 1px solid var(--lumina-alias-border-l1);
+}
+
+.heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--lumina-alias-label-primary);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--lumina-transition-duration-fast) var(--lumina-ease-in-out);
+}
+
+@media (hover: hover) {
+  .trigger:hover:not(:disabled) {
+    background: var(--lumina-alias-interactive-bg-hover);
+  }
+}
+
+.trigger:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid
+    var(--lumina-focus-ring-color, var(--lumina-alias-state-business-primary));
+  outline-offset: -2px;
+}
+
+.trigger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+}
+
+.chevron {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--lumina-alias-label-secondary);
+  transition: transform 200ms var(--lumina-ease-in-out);
+}
+
+.chevron[data-open] {
+  transform: rotate(180deg);
+}
+
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms var(--lumina-ease-in-out);
+}
+
+.panel[data-open] {
+  grid-template-rows: 1fr;
+}
+
+/*
+ * 底边内边距只在展开时给：padding 不会被 `0fr` 轨道压掉，
+ * 常驻的 14px 会让收起的面板露出一条空白。
+ */
+.panelInner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  color: var(--lumina-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.panel[data-open] .panelInner {
+  padding-bottom: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .chevron,
+  .panel {
+    transition: none;
+  }
+}

@@ -1,0 +1,117 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: var(--lumina-alias-bg-mask-3);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  font-family: var(--lumina-font-family);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 160ms var(--lumina-ease-in-out),
+    visibility 0s linear 160ms;
+}
+
+.root[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 160ms var(--lumina-ease-in-out),
+    visibility 0s linear 0s;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+  color: var(--lumina-alias-label-primary);
+  background-color: var(--lumina-alias-bg-layer-1);
+  border: 1px solid var(--lumina-alias-border-l2);
+  border-radius: var(--lumina-radius-xl);
+  box-shadow: var(--lumina-shadow-lv3);
+  transform: scale(0.98);
+  transition: transform 160ms var(--lumina-ease-in-out);
+}
+
+.root[data-open='true'] .panel {
+  transform: scale(1);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.sm {
+  max-width: 360px;
+}
+
+.md {
+  max-width: 480px;
+}
+
+.lg {
+  max-width: 720px;
+}
+
+.header {
+  flex: 0 0 auto;
+  padding: 20px 24px 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 6px 0 0;
+  color: var(--lumina-alias-label-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  flex: 0 1 auto;
+  min-height: 0;
+  padding: 16px 24px 20px;
+  overflow-y: auto;
+  color: var(--lumina-alias-label-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 24px 20px;
+}
+
+.body + .actions {
+  padding-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root[data-open='true'],
+  .panel {
+    transition: none;
+  }
+}

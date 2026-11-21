@@ -1,3 +1,7 @@
-/* 样式入口：Storybook 与使用方都从这里引入。 */
+/**
+ * 样式入口：Storybook 与文档站点用这一份。
+ * 使用方在应用里只需要 `import '@redish101/lumina/tokens.css'` 和
+ * （可选）`'@redish101/lumina/reset.css'`——组件各自的 CSS 会随着 import 自动带出。
+ */
 @import './tokens.css';
-@import './global.css';
+@import './reset.css';

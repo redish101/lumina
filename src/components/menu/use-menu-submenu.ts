@@ -197,6 +197,7 @@ export function useMenuSubmenu(options: {
       focusFirstChild();
       pendingFocus.current = null;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 焦点结算只在打开项变化时执行，refs 与回调进依赖会重复结算
   }, [
     open,
     entry,

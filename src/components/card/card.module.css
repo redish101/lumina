@@ -1,0 +1,111 @@
+/* 卡片：一个带描边的纵向容器，头部 / 主体 / 底部之间用细线分隔。
+ * 内边距由 --card-padding 统一驱动，避免每个区块各写一套 padding。 */
+.card {
+  --card-padding: 16px;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lumina-alias-border-l2);
+  border-radius: var(--lumina-radius-lg);
+  background: var(--lumina-alias-card-fill);
+  color: var(--lumina-alias-label-primary);
+  transition:
+    transform 180ms var(--lumina-ease-in-out),
+    box-shadow 180ms var(--lumina-ease-in-out),
+    background-color 180ms var(--lumina-ease-in-out);
+}
+
+.card[data-padding='none'] {
+  --card-padding: 0px;
+}
+
+.card[data-padding='sm'] {
+  --card-padding: 12px;
+}
+
+.card[data-padding='md'] {
+  --card-padding: 16px;
+}
+
+.card[data-padding='lg'] {
+  --card-padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: var(--card-padding);
+}
+
+.heading {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  color: var(--lumina-alias-label-primary);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.description {
+  color: var(--lumina-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.body {
+  padding: var(--card-padding);
+  color: var(--lumina-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.footer {
+  padding: var(--card-padding);
+  color: var(--lumina-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* 只有相邻区块之间才画分隔线，单独渲染主体或底部时不会多出一条线。 */
+.header + .body,
+.header + .footer,
+.body + .footer {
+  border-top: 1px solid var(--lumina-alias-border-l1);
+}
+
+.card[data-interactive] {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .card[data-interactive]:hover {
+    transform: translateY(-1px);
+    background: var(--lumina-alias-card-fill-hover);
+    box-shadow: var(--lumina-shadow-lv2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card[data-interactive]:hover {
+    transform: none;
+  }
+}

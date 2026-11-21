@@ -1,0 +1,82 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--lumina-alias-label-primary);
+}
+
+.required {
+  color: var(--lumina-alias-state-error-primary);
+  font-weight: 500;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.description,
+.error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.description {
+  color: var(--lumina-alias-label-tertiary);
+}
+
+.error {
+  color: var(--lumina-alias-state-error-primary);
+}
+
+.horizontal {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+.horizontal .label {
+  grid-column: 1;
+  grid-row: 1;
+  padding-top: 5px;
+}
+
+.horizontal .control {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.horizontal .messages {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.horizontal.noLabel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.horizontal.noLabel .control,
+.horizontal.noLabel .messages {
+  grid-column: 1;
+}

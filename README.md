@@ -2,9 +2,20 @@
 
 个人使用的 React 组件库。技术栈：**React 19 + TypeScript + CSS Modules + Vite（库构建）+ Storybook**，包管理使用 **pnpm**。
 
-> 组件：Button、Input、Checkbox、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys、Pill、Tag、StateDot、TextShimmer、AnimatedRows、Menu、Tooltip、Toast、ImagePreview、ImageLightbox、DraggableImage。每个组件在 Storybook 里都有 Docs 页与若干 story。
->
-> 在线文档：<https://redish101.github.io/lumina/>
+> 组件清单、props 与用法以 Storybook 为准：<https://redish101.github.io/lumina/>
+> 本文件只放**工程侧**信息（构建、发布、目录约定）；产品侧文档不在这里重复维护。
+
+## 组件
+
+| 分类     | 组件                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| 表单     | Button、Input、Textarea、Select、Checkbox、RadioGroup、Switch、SegmentedControl、SegmentedTabs、ShortcutKeys |
+| 表单布局 | Field、FieldGroup、FormError                                                                                 |
+| 布局     | Card、Accordion、Tabs、Sidebar、Empty                                                                        |
+| 浮层     | Dialog、Popover、Menu、Tooltip、Toast                                                                        |
+| 展示     | Tag、Pill、StateDot、TextShimmer、AnimatedRows、PathLabel、CommandText、DisclosureRow、FoldToggle            |
+| 内容     | CodeCard、DiffBlock、TerminalBlock、JsonTree                                                                 |
+| 媒体     | ImagePreview、ImageLightbox、DraggableImage                                                                  |
 
 ## 构建产物
 
@@ -50,9 +61,10 @@ pnpm build         # 产出 dist/
 | 命令                                | 说明                                                                |
 | ----------------------------------- | ------------------------------------------------------------------- |
 | `pnpm build`                        | 构建组件库到 `dist/`（ESM + CSS + 类型声明）                        |
-| `pnpm dev` / `pnpm docs`            | 启动 Storybook 开发服务器（端口 6006）                              |
+| `pnpm dev`                          | 启动 Storybook 开发服务器（端口 6006）                              |
 | `pnpm docs:build`                   | 静态构建文档到 `storybook-static/`                                  |
-| `pnpm docs:preview`                 | 本地预览构建好的文档                                                |
+| `pnpm docs:preview`                 | 本地预览构建好的文档（sirv 伺服 storybook-static）                  |
+| `pnpm clean`                        | 清掉 `dist/` 与 `storybook-static/`                                 |
 | `pnpm check`                        | 依次执行 `typecheck` / `lint` / `format:check` / `check:use-client` |
 | `pnpm typecheck`                    | 仅做类型检查（含 stories 与 Storybook 配置）                        |
 | `pnpm lint`                         | ESLint（flat config，含 typescript-eslint 与 react-hooks 规则）     |
@@ -75,18 +87,20 @@ lumina/
 │   │   │   ├── <name>.tsx          # 组件实现
 │   │   │   ├── <name>.module.css   # CSS Module 样式（只用设计令牌）
 │   │   │   ├── <name>.stories.tsx  # Storybook stories（带 autodocs）
-│   │   │   └── index.tsx           # 组件出口
+│   │   │   └── index.ts            # 组件出口（只做 re-export）
 │   │   ├── menu/                   # 多文件组件：组件 + hook + 工具函数同目录
 │   │   └── segmented/              # 同目录多个相关组件（Control + Tabs）
 │   ├── icons/                       # 内联 SVG 图标（无指令，可在服务端渲染）
 │   ├── intro/Introduction.mdx       # 文档首页
 │   ├── styles/
 │   │   ├── tokens.css               # 设计令牌（亮/暗主题变量、elevation）
-│   │   ├── global.css               # 重置与基础排版（对外是 @redish101/lumina/reset.css）
-│   │   └── index.css                # Storybook 用的样式入口（tokens → global）
+│   │   ├── reset.css                # 零特异性重置（:where + @layer，对外是 @redish101/lumina/reset.css）
+│   │   └── index.css                # Storybook 用的样式入口（tokens → reset）
 │   └── index.ts                     # 公共 API 入口（导入令牌，不带 `'use client'`）
 ├── dist/                    # 构建产物（不提交）
-├── scripts/check-use-client.mjs  # 校验 'use client' 指令位置
+├── scripts/
+│   ├── check-use-client.mjs      # 校验 'use client' 指令位置
+│   └── check-dist.mjs            # 构建后体检（CSS 命名、必需产物、内部目录泄漏）
 ├── types/css-modules.d.ts   # CSS Modules 类型声明
 ├── vite.lib.config.ts       # 库构建配置（Storybook 不吃这份）
 ├── tsconfig.json            # 类型检查 / 编辑器用（noEmit）
@@ -98,7 +112,7 @@ lumina/
 
 ## 新增组件
 
-1. 新建 `src/components/<name>/`（kebab-case），包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.tsx`
+1. 新建 `src/components/<name>/`（kebab-case），包含 `<name>.tsx`、`<name>.module.css`、`<name>.stories.tsx`、`index.ts`
 2. 样式只引用 `src/styles/tokens.css` 里的 CSS 变量（例如 `var(--lumina-alias-label-primary)`），确实缺的变量补进 `tokens.css` 的 `:root` 与暗色块
 3. 在 `src/index.ts` 中导出组件与 Props 类型
 4. 在 stories 中加上 `tags: ['autodocs']`（或在 `meta` 中设置），Storybook 会自动生成 Docs 页与 props 表格

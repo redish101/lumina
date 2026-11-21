@@ -6,6 +6,17 @@ import dts from 'vite-plugin-dts';
 import { libInjectCss } from 'vite-plugin-lib-inject-css';
 
 /**
+ * 把 CSS Modules 编译后的资源名改成普通 `.css`。
+ *
+ * 库产物里的样式已经是静态 CSS，若还叫 `button.module.css`，使用方的 bundler
+ * 会再当 CSS Module 处理一遍并丢掉引用（症状：消费端拿到 0 字节样式）。
+ * 产物侧的强制校验放在 `scripts/check-dist.mjs`（`pnpm build` 结束后执行）。
+ */
+function toPlainCssName(name: string): string {
+  return name.endsWith('.module.css') ? name.slice(0, -'.module.css'.length) + '.css' : name;
+}
+
+/**
  * 库构建配置（`pnpm build`）。
  *
  * 与 Storybook 无关：Storybook 走它自己的 `vite.config`，不吃这份配置，
@@ -24,14 +35,14 @@ export default defineConfig({
     react(),
     libInjectCss(),
     {
-      // 全局重置不参与组件样式，但要让需要的人能按 `lumina/reset.css` 引入
+      // 重置样式不随组件注入（否则会改使用方的全局排版），单独产出一份按需引入
       name: 'lumina:emit-reset-css',
       generateBundle() {
         this.emitFile({
           type: 'asset',
-          fileName: 'styles/global.css',
+          fileName: 'styles/reset.css',
           source: readFileSync(
-            fileURLToPath(new URL('./src/styles/global.css', import.meta.url)),
+            fileURLToPath(new URL('./src/styles/reset.css', import.meta.url)),
             'utf8',
           ),
         });
@@ -65,9 +76,7 @@ export default defineConfig({
         chunkFileNames: '[name].js',
         // CSS Modules 在库构建时已经编译成哈希类名，产物里只是普通 CSS；
         // 去掉 `.module` 后缀，免得使用方的 bundler 再把它当 CSS Module 处理。
-        assetFileNames: (assetInfo) =>
-          (assetInfo.names?.[0] ?? '').replace(/\.module\.css$/, '.css') ||
-          'assets/[name][extname]',
+        assetFileNames: (assetInfo) => toPlainCssName(assetInfo.names?.[0] ?? ''),
       },
     },
   },

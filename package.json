@@ -1,11 +1,12 @@
 {
   "name": "@redish101/lumina",
-  "version": "0.1.1",
-  "description": "A React component library.",
+  "version": "0.2.0",
+  "description": "Lumina · 个人使用的 React 组件库：CSS Modules 设计令牌、Vite 库模式产物、Storybook 文档",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/redish101/lumina.git"
+    "url": "git+https://github.com/redish101/lumina.git",
+    "directory": ""
   },
   "homepage": "https://github.com/redish101/lumina#readme",
   "bugs": {
@@ -17,7 +18,11 @@
     "ui",
     "css-modules",
     "design-system",
-    "storybook"
+    "design-tokens",
+    "storybook",
+    "vite",
+    "typescript",
+    "headless"
   ],
   "publishConfig": {
     "access": "public",
@@ -30,7 +35,7 @@
   },
   "sideEffects": [
     "./dist/index.js",
-    "**/*.css"
+    "./dist/**/*.css"
   ],
   "files": [
     "dist"
@@ -44,22 +49,22 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./reset.css": "./dist/styles/global.css",
+    "./reset.css": "./dist/styles/reset.css",
     "./tokens.css": "./dist/styles/tokens.css",
     "./package.json": "./package.json"
   },
   "scripts": {
     "dev": "storybook dev -p 6006 --no-open",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm check:use-client",
-    "check:use-client": "node scripts/check-use-client.mjs",
+    "build": "vite build -c vite.lib.config.ts && node scripts/check-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs": "storybook dev -p 6006 --no-open",
+    "check:use-client": "node scripts/check-use-client.mjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm check:use-client",
     "docs:build": "storybook build",
-    "docs:preview": "vite preview --outDir storybook-static",
-    "build": "vite build -c vite.lib.config.ts"
+    "docs:preview": "sirv storybook-static --port 6006 --single",
+    "clean": "rm -rf dist storybook-static"
   },
   "dependencies": {
     "clsx": "^2.1.1"
@@ -84,11 +89,13 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "remark-gfm": "^4.0.1",
+    "sirv-cli": "^3.0.1",
     "storybook": "^10.6.7",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8",
     "vite-plugin-dts": "^5.1.2",
     "vite-plugin-lib-inject-css": "^2.2.2"
-  }
+  },
+  "author": "redish101"
 }

@@ -1,0 +1,24 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 2px 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--lumina-alias-label-tertiary);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--lumina-radius-xs);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  color: var(--lumina-alias-label-secondary);
+}
+
+.toggle:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid var(--lumina-alias-state-business-primary);
+  outline-offset: 2px;
+}

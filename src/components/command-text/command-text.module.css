@@ -1,0 +1,15 @@
+.text {
+  display: block;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  font: inherit;
+  white-space: pre;
+  word-break: break-word;
+  scrollbar-width: thin;
+}
+
+.text:focus-visible {
+  outline: var(--lumina-focus-ring-width) solid var(--lumina-alias-state-business-primary);
+  outline-offset: -2px;
+}

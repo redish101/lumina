@@ -257,6 +257,7 @@ export function Menu({
   const positioned = !portal || anchorRef === undefined || externalAnchor !== null;
   // 外部 ref 可能在本组件之后才挂上，也可能在不改变 ref 身份的情况下替换元素。
   // 等所有 ref 提交后再发布锚点。
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在 open/portal/anchorRef 变化时重新发布锚点，不跟随 anchorRef.current
   useEffect(() => {
     if (!open || !portal || anchorRef === undefined) {
       setExternalAnchor(null);
@@ -317,6 +318,7 @@ export function Menu({
         rootRef.current?.contains(active) === true)
         ? active
         : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 触发器探测只在 open 切换时做一次，anchorPoint 是渲染期快照
   }, [open]);
 
   useEffect(() => {
@@ -332,6 +334,7 @@ export function Menu({
     const first = listRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)');
     walkIndex.current = first === undefined || first === null ? null : 0;
     if (first != null) focusWithoutRing(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 自动聚焦只在列表结构变化时结算，submenu 是每次渲染的新对象
   }, [open, autoFocus, items.length, footer?.length, positioned, exiting]);
 
   useEffect(() => {
@@ -483,10 +486,12 @@ export function Menu({
       document.removeEventListener('keydown', onEscape, true);
       window.removeEventListener('blur', onWindowBlur);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 全局监听只在 open 或关闭回调变化时重装，refocusAnchor 身份不稳定
   }, [open, onClose, autoFocus, contextual, exiting, anchorRef, returnFocus, isExternalTrigger]);
 
   useLayoutEffect(() => {
     if (exiting === 'dismiss' && listRef.current?.contains(document.activeElement)) refocusAnchor();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 聚焦归还跟着 exiting 阶段走，refocusAnchor 每次渲染身份都会变
   }, [exiting]);
 
   // 由选中、Escape、外部点击引起的关闭会跑在一次排队的宽限关闭前面；
