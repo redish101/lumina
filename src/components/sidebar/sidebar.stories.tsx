@@ -34,11 +34,15 @@ const LINK_ITEMS: SidebarItem[] = [
   { id: 'done', label: '已完成', icon: <IconCheckOutline size={16} />, href: '#done' },
 ];
 
+// 侧栏是毛玻璃，需要底下有色彩才看得出效果：这里铺两块柔和的色斑当背景。
 const frameStyle: CSSProperties = {
   display: 'flex',
   height: 560,
   overflow: 'hidden',
-  background: 'var(--lumina-alias-bg-layer-1)',
+  background:
+    'radial-gradient(55% 45% at 6% 4%, color-mix(in srgb, var(--lumina-static-deepseek-400) 62%, transparent), transparent 72%),' +
+    'radial-gradient(60% 55% at 100% 100%, color-mix(in srgb, var(--lumina-static-blue-500) 34%, transparent), transparent 70%),' +
+    'var(--lumina-alias-bg-layer-1)',
   border: '1px solid var(--lumina-alias-border-l2)',
   borderRadius: 'var(--lumina-radius-lg)',
 };

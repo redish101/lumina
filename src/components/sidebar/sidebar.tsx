@@ -65,6 +65,9 @@ function getLabelText(label: ReactNode): string | undefined {
 /**
  * 数据驱动的侧边导航：支持分组、徽标、链接条目与可折叠宽度，
  * 折叠时只隐藏文案的视觉呈现，仍保留每个条目的可访问名称。
+ *
+ * 外观是毛玻璃（半透明底 + 背景模糊），需要有色彩或明暗变化的底层才看得出来；
+ * 铺在纯白页面上时它接近一条带细描边的白色面板。
  */
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar(
   {

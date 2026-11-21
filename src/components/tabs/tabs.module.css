@@ -64,8 +64,14 @@
   transform: scaleX(1);
 }
 
-.tab[aria-selected='true'] {
+/* 只有下划线变体把选中态染成强调色；pill 变体靠白色浮块表达选中，
+ * 再叠强调色会显得脏。 */
+.tabs[data-variant='underline'] .tab[aria-selected='true'] {
   color: var(--lumina-alias-state-business-primary);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--lumina-alias-label-primary);
 }
 
 @media (hover: hover) {
@@ -118,8 +124,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-.tab[aria-selected='true'] .badge[data-numeric] {
+.tabs[data-variant='underline'] .tab[aria-selected='true'] .badge[data-numeric] {
   color: var(--lumina-alias-state-business-primary);
+}
+
+.tab[aria-selected='true'] .badge[data-numeric] {
+  color: var(--lumina-alias-label-primary);
 }
 
 /* 滑块由脚本量出宽度与偏移后写回 style；在首次测量完成前保持透明，

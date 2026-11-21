@@ -5,8 +5,11 @@
   height: 100%;
   overflow: hidden;
   color: var(--lumina-alias-label-primary);
-  background-color: var(--lumina-alias-bg-layer-2);
-  border-right: 1px solid var(--lumina-alias-border-l2);
+  /* 毛玻璃：半透明底色 + 背景模糊，透出下层页面的色彩与明暗 */
+  background-color: color-mix(in srgb, var(--lumina-alias-bg-layer-1) 52%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-right: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
   font-family: var(--lumina-font-family);
   transition: width var(--lumina-transition-duration) var(--lumina-ease-in-out);
 }
@@ -157,7 +160,7 @@
 .footer {
   flex: 0 0 auto;
   padding: 12px 16px;
-  border-top: 1px solid var(--lumina-alias-border-l2);
+  border-top: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
   overflow: hidden;
   color: var(--lumina-alias-label-secondary);
   font-size: 12px;
@@ -168,7 +171,14 @@
 .collapseRow {
   flex: 0 0 auto;
   padding: 8px;
-  border-top: 1px solid var(--lumina-alias-border-l2);
+  border-top: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
+}
+
+/* 不支持 backdrop-filter 时退回不透明底，否则半透明侧栏会糊成一片 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sidebar {
+    background-color: var(--lumina-alias-bg-layer-2);
+  }
 }
 
 .collapseButton {
