@@ -48,7 +48,7 @@ function SignupForm() {
       noValidate
       style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 480 }}
     >
-      <FieldGroup title="基本信息" description="用于创建账号，提交后仍可修改。">
+      <FieldGroup title="基本信息" description="用于创建账号，提交后仍可修改。" columns={2}>
         <Field label="姓名" required>
           <Input
             value={name}
@@ -72,21 +72,24 @@ function SignupForm() {
             placeholder="请选择城市"
           />
         </Field>
-        <Field label="备注" description="最多 5 行，超出后内部滚动">
-          <Textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="还有什么需要我们知道？"
-            autoResize
-            maxRows={5}
-          />
-        </Field>
         <RadioGroup
           label="通知方式"
+          orientation="horizontal"
           value={channel}
           onChange={(next) => setChannel(next)}
           options={CHANNELS}
         />
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Field label="备注" description="最多 5 行，超出后内部滚动">
+            <Textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="还有什么需要我们知道？"
+              autoResize
+              maxRows={5}
+            />
+          </Field>
+        </div>
       </FieldGroup>
 
       {error ? <FormError>{error}</FormError> : null}
