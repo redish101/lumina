@@ -5,11 +5,26 @@
   height: 100%;
   overflow: hidden;
   color: var(--lumina-alias-label-primary);
-  /* 毛玻璃：半透明底色 + 背景模糊，透出下层页面的色彩与明暗 */
-  background-color: color-mix(in srgb, var(--lumina-alias-bg-layer-1) 58%, transparent);
-  -webkit-backdrop-filter: blur(26px) saturate(140%);
-  backdrop-filter: blur(26px) saturate(140%);
-  border-right: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
+  /* 毛玻璃（照搬 deepseek-harness 的 AppFrame 侧栏配方）：一层水平向的蓝色
+     wash（顶部蓝、底部蓝紫，两端透明）+ 一层很淡的 tint，再靠 backdrop-filter
+     模拟 macOS 窗口 vibrancy 的模糊。直接用半透明白会让侧栏发灰、发脏。 */
+  --sidebar-fill: var(--lumina-static-neutral-bluish-50);
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(122 155 240 / 0.1),
+      rgb(122 155 240 / 0) 35%,
+      rgb(143 137 184 / 0) 68%,
+      rgb(143 137 184 / 0.09)
+    ),
+    color-mix(
+      in srgb,
+      color-mix(in srgb, var(--sidebar-fill) 97%, rgb(122 155 240)) 40%,
+      transparent
+    );
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+  border-right: 0.5px solid var(--lumina-alias-border-l3);
   font-family: var(--lumina-font-family);
   transition: width var(--lumina-transition-duration) var(--lumina-ease-in-out);
 }
@@ -172,6 +187,20 @@
   flex: 0 0 auto;
   padding: 8px;
   border-top: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
+}
+
+/* 暗色：tint 去掉蓝色倾向（在深色底上会发紫）并调薄，wash 也减半 */
+:global(body[data-lumina-dark-theme]) .sidebar {
+  --sidebar-fill: var(--lumina-static-neutral-bluish-900);
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(122 155 240 / 0.08),
+      rgb(122 155 240 / 0) 35%,
+      rgb(143 137 184 / 0) 68%,
+      rgb(143 137 184 / 0.07)
+    ),
+    color-mix(in srgb, var(--sidebar-fill) 50%, transparent);
 }
 
 /* 不支持 backdrop-filter 时退回不透明底，否则半透明侧栏会糊成一片 */

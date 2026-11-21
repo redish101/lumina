@@ -1,13 +1,26 @@
+/* 外观对齐 deepseek-harness 的 settings selector：34px 高、12px 横向内边距、
+   0.5px 描边、`bg-layer-3` 的浅色面板底、13px 文字，右侧自绘 chevron。 */
 .wrap {
   box-sizing: border-box;
   position: relative;
   display: inline-flex;
   align-items: center;
   width: 100%;
-  height: 32px;
+  height: 34px;
+  padding: 0 12px;
   border: 0.5px solid var(--lumina-alias-border-l4);
   border-radius: var(--lumina-radius-md);
-  background: var(--lumina-alias-bg-layer-1);
+  background: var(--lumina-alias-bg-layer-3);
+  color: var(--lumina-alias-label-primary);
+  transition:
+    background-color var(--lumina-transition-duration-fast) var(--lumina-ease-in-out),
+    border-color var(--lumina-transition-duration-fast) var(--lumina-ease-in-out);
+}
+
+@media (hover: hover) {
+  .wrap:hover:not(.disabled) {
+    background: var(--lumina-alias-interactive-bg-hover);
+  }
 }
 
 .wrap:focus-within {
@@ -22,8 +35,9 @@
   border-color: var(--lumina-alias-state-error-primary);
 }
 
-.wrap:has(.select:disabled) {
-  opacity: 0.5;
+.wrap.disabled {
+  color: var(--lumina-alias-label-tertiary);
+  cursor: default;
 }
 
 .select {
@@ -32,16 +46,16 @@
   min-width: 0;
   height: 100%;
   margin: 0;
-  padding: 0 32px 0 8px;
+  padding: 0 20px 0 0;
   border: 0;
   outline: none;
   background: transparent;
   appearance: none;
   -webkit-appearance: none;
   font-family: var(--lumina-font-family);
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--lumina-alias-label-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  color: inherit;
   cursor: pointer;
 }
 
@@ -50,13 +64,13 @@
 }
 
 .select option {
-  background: var(--lumina-alias-bg-layer-1);
+  background: var(--lumina-alias-bg-layer-3);
   color: var(--lumina-alias-label-primary);
 }
 
 .chevron {
   position: absolute;
-  right: 8px;
+  right: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

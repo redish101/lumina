@@ -39,8 +39,8 @@ export type RadioGroupProps = {
  * 单选组。
  *
  * 用 `<fieldset>` + `<legend>` 表达分组，内部是同名原生 `<input type="radio">`，
- * 因此方向键切换、表单提交与读屏播报都由浏览器原生行为提供；圆点外观由
- * `appearance: none` + 内阴影自绘，不依赖额外图标。
+ * 因此方向键切换、表单提交与读屏播报都由浏览器原生行为提供；圆点外观交给系统，
+ * 只用 `accent-color` 上品牌色。
  */
 export const RadioGroup = forwardRef<HTMLFieldSetElement, RadioGroupProps>(function RadioGroup(
   {

@@ -67,9 +67,17 @@ const SelectControl = forwardRef<HTMLSelectElement, SelectControlProps>(function
   const isControlled = value !== undefined;
 
   return (
-    <span className={clsx(css.wrap, invalid && css.invalid, className)}>
+    <span
+      className={clsx(
+        css.wrap,
+        invalid && css.invalid,
+        selectProps.disabled && css.disabled,
+        className,
+      )}
+    >
       <select
         ref={innerRef}
+        className={css.select}
         id={id ?? field?.id}
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}

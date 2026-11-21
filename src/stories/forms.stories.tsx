@@ -64,33 +64,30 @@ function SignupForm() {
             placeholder="you@example.com"
           />
         </Field>
+        <Field label="城市" description="决定默认的配送范围">
+          <Select
+            value={city}
+            onChange={(next) => setCity(next)}
+            options={CITIES}
+            placeholder="请选择城市"
+          />
+        </Field>
+        <Field label="备注" description="最多 5 行，超出后内部滚动">
+          <Textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="还有什么需要我们知道？"
+            autoResize
+            maxRows={5}
+          />
+        </Field>
+        <RadioGroup
+          label="通知方式"
+          value={channel}
+          onChange={(next) => setChannel(next)}
+          options={CHANNELS}
+        />
       </FieldGroup>
-
-      <Field label="城市" description="决定默认的配送范围">
-        <Select
-          value={city}
-          onChange={(next) => setCity(next)}
-          options={CITIES}
-          placeholder="请选择城市"
-        />
-      </Field>
-
-      <Field label="备注" description="最多 5 行，超出后内部滚动">
-        <Textarea
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          placeholder="还有什么需要我们知道？"
-          autoResize
-          maxRows={5}
-        />
-      </Field>
-
-      <RadioGroup
-        label="通知方式"
-        value={channel}
-        onChange={(next) => setChannel(next)}
-        options={CHANNELS}
-      />
 
       {error ? <FormError>{error}</FormError> : null}
       {submitted ? (
