@@ -1,7 +1,7 @@
 .checkbox {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   font-size: 14px;
   line-height: 20px;
   color: var(--lumina-alias-label-primary);
@@ -10,10 +10,12 @@
 
 .checkbox input {
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   margin: 0;
   accent-color: var(--lumina-alias-brand-primary);
+  appearance: auto;
+  -webkit-appearance: auto;
   cursor: inherit;
 }
 

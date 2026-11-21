@@ -40,7 +40,7 @@
   display: inline-flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
   color: var(--lumina-alias-label-primary);
   cursor: pointer;
@@ -56,9 +56,9 @@
 .input {
   box-sizing: border-box;
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  margin: 2px 0 0;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
   accent-color: var(--lumina-alias-brand-primary);
   appearance: auto;
   -webkit-appearance: auto;
