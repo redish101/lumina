@@ -34,17 +34,24 @@ const LINK_ITEMS: SidebarItem[] = [
   { id: 'done', label: '已完成', icon: <IconCheckOutline size={16} />, href: '#done' },
 ];
 
-// 侧栏是毛玻璃，需要底下有色彩才看得出效果：这里铺两块柔和的色斑当背景。
+// 侧栏是毛玻璃，需要底下有明暗/色彩过渡才看得出效果：
+// 只在侧栏那块铺一层很淡的冷色渐变，内容区保持纯底色，不要跟着染色。
 const frameStyle: CSSProperties = {
   display: 'flex',
   height: 560,
   overflow: 'hidden',
-  background:
-    'radial-gradient(55% 45% at 6% 4%, color-mix(in srgb, var(--lumina-static-deepseek-400) 62%, transparent), transparent 72%),' +
-    'radial-gradient(60% 55% at 100% 100%, color-mix(in srgb, var(--lumina-static-blue-500) 34%, transparent), transparent 70%),' +
-    'var(--lumina-alias-bg-layer-1)',
+  background: 'var(--lumina-alias-bg-layer-1)',
   border: '1px solid var(--lumina-alias-border-l2)',
   borderRadius: 'var(--lumina-radius-lg)',
+};
+
+const backdropStyle: CSSProperties = {
+  display: 'flex',
+  flex: '0 0 auto',
+  background:
+    'linear-gradient(165deg, color-mix(in srgb, var(--lumina-static-deepseek-400) 26%, var(--lumina-alias-bg-layer-1)) 0%,' +
+    ' color-mix(in srgb, var(--lumina-static-blue-500) 10%, var(--lumina-alias-bg-layer-1)) 45%,' +
+    ' var(--lumina-alias-bg-layer-1) 100%)',
 };
 
 const contentStyle: CSSProperties = {
@@ -61,7 +68,9 @@ function SidebarDemo(props: Omit<SidebarProps, 'activeId' | 'onSelect'>) {
 
   return (
     <div style={frameStyle}>
-      <Sidebar {...props} activeId={activeId} onSelect={setActiveId} />
+      <div style={backdropStyle}>
+        <Sidebar {...props} activeId={activeId} onSelect={setActiveId} />
+      </div>
       <div style={contentStyle}>
         <p style={{ margin: 0 }}>当前选中：{activeId}</p>
       </div>
@@ -76,17 +85,19 @@ function ControlledSidebarDemo() {
 
   return (
     <div style={frameStyle}>
-      <Sidebar
-        header={<strong>Lumina</strong>}
-        items={PRIMARY_ITEMS}
-        sections={SECTIONS}
-        footer={<span>已保存</span>}
-        activeId={activeId}
-        onSelect={setActiveId}
-        collapsible
-        collapsed={collapsed}
-        onCollapsedChange={setCollapsed}
-      />
+      <div style={backdropStyle}>
+        <Sidebar
+          header={<strong>Lumina</strong>}
+          items={PRIMARY_ITEMS}
+          sections={SECTIONS}
+          footer={<span>已保存</span>}
+          activeId={activeId}
+          onSelect={setActiveId}
+          collapsible
+          collapsed={collapsed}
+          onCollapsedChange={setCollapsed}
+        />
+      </div>
       <div style={contentStyle}>
         <p style={{ margin: '0 0 12px' }}>受控折叠：{collapsed ? '已折叠' : '已展开'}</p>
         <Button onClick={() => setCollapsed((current) => !current)}>从外部切换</Button>

@@ -6,9 +6,9 @@
   overflow: hidden;
   color: var(--lumina-alias-label-primary);
   /* 毛玻璃：半透明底色 + 背景模糊，透出下层页面的色彩与明暗 */
-  background-color: color-mix(in srgb, var(--lumina-alias-bg-layer-1) 52%, transparent);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  backdrop-filter: blur(28px) saturate(180%);
+  background-color: color-mix(in srgb, var(--lumina-alias-bg-layer-1) 58%, transparent);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+  backdrop-filter: blur(26px) saturate(140%);
   border-right: 1px solid color-mix(in srgb, var(--lumina-alias-border-l2) 60%, transparent);
   font-family: var(--lumina-font-family);
   transition: width var(--lumina-transition-duration) var(--lumina-ease-in-out);
