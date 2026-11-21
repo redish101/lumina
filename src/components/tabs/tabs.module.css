@@ -55,7 +55,7 @@
   left: 0;
   height: 2px;
   border-radius: 1px;
-  background: var(--lumina-alias-brand-primary);
+  background: var(--lumina-alias-state-business-primary);
   transform: scaleX(0);
   transition: transform 180ms var(--lumina-ease-in-out);
 }
@@ -65,7 +65,7 @@
 }
 
 .tab[aria-selected='true'] {
-  color: var(--lumina-alias-label-primary);
+  color: var(--lumina-alias-state-business-primary);
 }
 
 @media (hover: hover) {
@@ -119,7 +119,7 @@
 }
 
 .tab[aria-selected='true'] .badge[data-numeric] {
-  color: var(--lumina-alias-label-primary);
+  color: var(--lumina-alias-state-business-primary);
 }
 
 /* 滑块由脚本量出宽度与偏移后写回 style；在首次测量完成前保持透明，
