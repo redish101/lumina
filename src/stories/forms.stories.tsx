@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../components/button';
+import { Checkbox } from '../components/checkbox';
 import { Field } from '../components/field';
 import { FieldGroup } from '../components/field-group';
 import { FormError } from '../components/form-error';
@@ -28,6 +29,8 @@ function SignupForm() {
   const [city, setCity] = useState('');
   const [note, setNote] = useState('');
   const [channel, setChannel] = useState('email');
+  const [agreed, setAgreed] = useState(false);
+  const [subscribed, setSubscribed] = useState(true);
   const [submitted, setSubmitted] = useState('');
   const [error, setError] = useState('');
 
@@ -35,6 +38,11 @@ function SignupForm() {
     event.preventDefault();
     if (!name.trim() || !email.trim()) {
       setError('姓名与邮箱都是必填项。');
+      setSubmitted('');
+      return;
+    }
+    if (!agreed) {
+      setError('请先阅读并同意服务条款。');
       setSubmitted('');
       return;
     }
@@ -88,6 +96,18 @@ function SignupForm() {
             maxRows={8}
           />
         </Field>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Checkbox
+            checked={agreed}
+            onChange={setAgreed}
+            label="我已阅读并同意《服务条款》与《隐私政策》"
+          />
+          <Checkbox
+            checked={subscribed}
+            onChange={setSubscribed}
+            label="订阅产品更新，每月一封，可随时退订"
+          />
+        </div>
       </FieldGroup>
 
       {error ? <FormError>{error}</FormError> : null}
@@ -110,6 +130,8 @@ function SignupForm() {
             setCity('');
             setNote('');
             setChannel('email');
+            setAgreed(false);
+            setSubscribed(true);
             setError('');
             setSubmitted('');
           }}
@@ -130,7 +152,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '表单没有单独的 Form 组件：布局用 FieldGroup，字段用 Field，控件用 Input / Select / Textarea / RadioGroup，' +
+          '表单没有单独的 Form 组件：布局用 FieldGroup，字段用 Field，控件用 Input / Select / Textarea / RadioGroup / Checkbox，' +
           '整体错误用 FormError。所有关联（label 的 htmlFor、aria-describedby、aria-invalid）由 Field 通过 context 自动接好。',
       },
     },
