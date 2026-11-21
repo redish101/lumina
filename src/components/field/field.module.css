@@ -1,7 +1,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -9,9 +9,9 @@
   display: inline-flex;
   align-items: baseline;
   gap: 2px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--lumina-alias-label-primary);
 }
 
@@ -36,8 +36,8 @@
 .description,
 .error {
   margin: 0;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 13px;
+  line-height: 20px;
 }
 
 .description {
